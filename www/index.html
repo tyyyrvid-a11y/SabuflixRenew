@@ -306,12 +306,29 @@
     <!-- Navigation -->
     <nav class="top-nav" aria-label="Main navigation">
         <div class="nav-links">
-            <a href="#" class="nav-item active" data-tab="home" aria-label="Home">Início</a>
-            <a href="#" class="nav-item" data-tab="discover" aria-label="Discover">Explorar</a>
-            <a href="#" class="nav-item" data-tab="series" aria-label="Series">Séries</a>
-            <a href="#" class="nav-item nav-mylist-hidden" data-tab="mylist" id="navMyList" aria-label="My List">Minha Lista</a>
+            <a href="#" class="nav-item active" data-tab="home" aria-label="Home">
+                <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span class="nav-text">Início</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="discover" aria-label="Discover">
+                <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                <span class="nav-text">Explorar</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="series" aria-label="Series">
+                <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+                <span class="nav-text">Séries</span>
+            </a>
+            <a href="#" class="nav-item nav-mylist-hidden" data-tab="mylist" id="navMyList" aria-label="My List">
+                <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                <span class="nav-text">Minha Lista</span>
+            </a>
+            <!-- Mobile-only Search Button -->
+            <a href="#" class="nav-item mobile-only" id="btnOpenSearchMobile" aria-label="Search">
+                <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <span class="nav-text">Buscar</span>
+            </a>
         </div>
-        <div class="nav-actions">
+        <div class="nav-actions desktop-only">
             <a href="#" class="nav-item" id="btnOpenSearch" aria-label="Search">Buscar</a>
             <a href="#" class="nav-item" aria-label="Toggle theme">Tema</a>
         </div>

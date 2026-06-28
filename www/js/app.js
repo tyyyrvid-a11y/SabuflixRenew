@@ -640,9 +640,10 @@
         navItems.forEach((item) => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
+                const tab = item.dataset.tab;
+                if (!tab) return; // Skip non-tab items like search
                 navItems.forEach((n) => n.classList.remove('active'));
                 item.classList.add('active');
-                const tab = item.dataset.tab;
                 activeTab = tab;
                 saveActiveTab(tab);
                 const loader = tabLoaders[tab];
@@ -650,10 +651,12 @@
             });
 
             // Mark the persisted tab as active
-            if (item.dataset.tab === savedTab) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
+            if (item.dataset.tab) {
+                if (item.dataset.tab === savedTab) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
             }
         });
 
@@ -675,6 +678,15 @@
 
         if (DOM.btnOpenSearch) {
             DOM.btnOpenSearch.addEventListener('click', (e) => {
+                e.preventDefault();
+                overlay.classList.add('active');
+                input.focus();
+            });
+        }
+
+        const btnOpenSearchMobile = document.getElementById('btnOpenSearchMobile');
+        if (btnOpenSearchMobile) {
+            btnOpenSearchMobile.addEventListener('click', (e) => {
                 e.preventDefault();
                 overlay.classList.add('active');
                 input.focus();
