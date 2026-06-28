@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="SabuFlix — All your favorite streaming platforms in one place. Watch movies and TV shows instantly.">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>SabuFlix OS</title>
+    <link rel="stylesheet" href="css/style.css?v=21">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    <style>
+        /* ── Splash / Loading Screen ── */
+        .splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0a;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .splash-screen.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .splash-logo {
+            font-family: 'Inter', sans-serif;
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
+        }
+        .splash-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: splash-spin 0.8s linear infinite;
+        }
+        @keyframes splash-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Auth Modal (moved from inline) ── */
+        .auth-modal-overlay {
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(20,20,20,0.95));
+            backdrop-filter: blur(20px);
+            z-index: 9999;
+        }
+        .auth-modal-card {
+            max-width: 400px;
+            padding: 50px 40px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+            background: rgba(10,10,10,0.8);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .auth-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: none;
+        }
+        .auth-header {
+            margin-bottom: 30px;
+        }
+        .auth-header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, #fff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .auth-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+        .auth-input:last-of-type {
+            margin-bottom: 20px;
+        }
+        .auth-btn-signin {
+            width: 100%;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+        .auth-btn-signup {
+            width: 100%;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+        }
+        .auth-message {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #eab308;
+        }
+        .auth-profile-email {
+            margin-bottom: 20px;
+            color: var(--text-muted);
+        }
+        .auth-btn-signout {
+            width: 100%;
+            justify-content: center;
+            background: #e02424;
+        }
+
+        /* ── Streaming / Download Section (moved from inline) ── */
+        .streaming-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 25px;
+        }
+        .streaming-label {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .stream-play-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+        }
+        .stream-play-icon i {
+            width: 20px;
+            height: 20px;
+        }
+        .stream-badge {
+            background: #eab308;
+            color: #000;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-weight: 800;
+        }
+        .download-section {
+            margin-top: 10px;
+        }
+        .download-label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .download-searching {
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        /* ── Details panel buttons (moved from inline) ── */
+        .details-btn-mylist {
+            margin-top: 20px;
+            font-size: 14px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* ── Series selector (moved from inline) ── */
+        .series-selector-pills-hidden {
+            display: none;
+            align-items: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* ── Recommended section (moved from inline) ── */
+        .recommended-section {
+            display: none;
+            padding: 20px 40px;
+            margin-top: -100px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ── My-list container ── */
+        .my-list-hidden {
+            display: none;
+        }
+
+        /* ── Nav my-list hidden ── */
+        .nav-mylist-hidden {
+            display: none;
+        }
+
+        /* ── Footer subtitle ── */
+        .footer-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        /* ── Player inner wrappers ── */
+        .plyr-wrapper {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .plyr-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .video-fallback-hidden {
+            display: none;
+            text-align: center;
+        }
+
+        /* ── Hero play icon fill ── */
+        .icon-fill {
+            fill: currentColor;
+        }
+
+        /* ── Catalog loading skeleton ── */
+        .catalog-skeleton {
+            padding: 20px 40px;
+        }
+        .skeleton-row {
+            margin-bottom: 30px;
+        }
+        .skeleton-row-title {
+            width: 160px;
+            height: 22px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 6px;
+            margin-bottom: 14px;
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+        .skeleton-cards {
+            display: flex;
+            gap: 12px;
+            overflow: hidden;
+        }
+        .skeleton-card {
+            flex-shrink: 0;
+            width: 160px;
+            height: 240px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+        .skeleton-card:nth-child(2) { animation-delay: 0.15s; }
+        .skeleton-card:nth-child(3) { animation-delay: 0.3s; }
+        .skeleton-card:nth-child(4) { animation-delay: 0.45s; }
+        .skeleton-card:nth-child(5) { animation-delay: 0.6s; }
+        .skeleton-card:nth-child(6) { animation-delay: 0.75s; }
+        .skeleton-card:nth-child(7) { animation-delay: 0.9s; }
+        .skeleton-card:nth-child(8) { animation-delay: 1.05s; }
+        @keyframes skeleton-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash / Loading Screen -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">SabuFlix</div>
+        <div class="splash-spinner"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="top-nav" aria-label="Main navigation">
+        <div class="nav-links">
+            <a href="#" class="nav-item active" data-tab="home" aria-label="Home">Início</a>
+            <a href="#" class="nav-item" data-tab="discover" aria-label="Discover">Explorar</a>
+            <a href="#" class="nav-item" data-tab="series" aria-label="Series">Séries</a>
+            <a href="#" class="nav-item nav-mylist-hidden" data-tab="mylist" id="navMyList" aria-label="My List">Minha Lista</a>
+        </div>
+        <div class="nav-actions">
+            <a href="#" class="nav-item" id="btnOpenSearch" aria-label="Search">Buscar</a>
+            <a href="#" class="nav-item" aria-label="Toggle theme">Tema</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Hero Banner -->
+        <section class="hero-banner" id="heroBanner">
+            <div class="hero-overlay"></div>
+            <div class="hero-info">
+                <h1 class="hero-title" id="heroTitle">Carregando...</h1>
+                <div class="hero-meta" id="heroMeta"></div>
+                <p class="hero-overview" id="heroOverview"></p>
+                <div class="hero-buttons">
+                    <button class="btn-primary" id="heroPlay" aria-label="Play">▶ Assistir</button>
+                    <button class="pill-btn" id="heroBtnMyList" aria-label="Add to My List">+ Minha Lista</button>
+                    <button class="pill-btn" aria-label="More info">Detalhes</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommended Section -->
+        <div id="recommendedSection" class="recommended-section"></div>
+
+        <!-- Catalog -->
+        <div class="catalog-container" id="catalogContainer">
+            <div class="catalog-skeleton">
+                <div class="skeleton-row">
+                    <div class="skeleton-row-title"></div>
+                    <div class="skeleton-cards">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+                <div class="skeleton-row">
+                    <div class="skeleton-row-title"></div>
+                    <div class="skeleton-cards">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+                <div class="skeleton-row">
+                    <div class="skeleton-row-title"></div>
+                    <div class="skeleton-cards">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My List -->
+        <div class="catalog-container my-list-hidden" id="myListContainer">
+            <div class="row">
+                <h2>Minha Lista</h2>
+                <div class="media-row" id="myListRow"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>All Your Favorite Platforms In One Place</p>
+            <p class="footer-subtitle">Built for entertainment enthusiasts worldwide</p>
+        </footer>
+    </main>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-modal">
+            <div class="search-header">
+                <span style="font-weight: bold; margin-right: 10px; color: var(--text-secondary);">Buscar</span>
+                <input type="text" id="searchInput" placeholder="Search..." aria-label="Search movies and TV shows">
+                <button class="close-search" id="closeSearch" aria-label="Close search" style="font-family: 'Inter', sans-serif; font-weight: bold;">X</button>
+            </div>
+            <div class="search-tabs">
+                <button class="search-tab active">Movies &amp; TV</button>
+                <button class="search-tab">Movie</button>
+                <button class="search-tab">TV</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="details-immersive" id="detailsModal">
+        <div class="details-backdrop" id="detailsBackdrop"></div>
+        <div class="details-gradient"></div>
+        <div class="details-layout">
+            <div class="details-top-controls">
+                <button class="pill-btn close-details" id="closeDetails" aria-label="Close details">X Fechar</button>
+            </div>
+            <div class="details-content-split">
+                <div class="details-left">
+                    <div class="details-info-block">
+                        <span class="media-type-badge" id="detailsBadge"></span>
+                        <h1 class="details-title" id="detailsTitle"></h1>
+                        <div class="details-meta" id="detailsMeta"></div>
+                        <p class="details-overview" id="detailsOverview"></p>
+                        <button class="btn-primary details-btn-mylist" id="detailsBtnMyList" aria-label="Add to My List">+ Adicionar à Minha Lista</button>
+                    </div>
+                    <div class="series-selector-pills series-selector-pills-hidden" id="seriesSelector">
+                        <div class="custom-dropdown" id="seasonDropdownWrapper">
+                            <div class="custom-dropdown-trigger" id="seasonDropdownTrigger">
+                                <span id="seasonDropdownLabel">Temporada 1</span>
+                                <span>▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="seasonDropdownMenu"></div>
+                        </div>
+                        <div class="custom-dropdown" id="episodeDropdownWrapper">
+                            <div class="custom-dropdown-trigger" id="episodeDropdownTrigger">
+                                <span id="episodeDropdownLabel">1. Episódio</span>
+                                <span>▼</span>
+                            </div>
+                            <div class="custom-dropdown-menu" id="episodeDropdownMenu"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="details-right" id="detailsRightPanel">
+                    <div class="streaming-section">
+                        <span class="streaming-label">STREAMING INSTANTÂNEO</span>
+                        <div class="stream-entry" id="btnPillPlayer1" role="button" tabindex="0">
+                            <div class="stream-entry-info" style="flex:1;">
+                                <span class="stream-entry-name">Ultron <span class="stream-badge">STREAMING</span></span>
+                                <span class="stream-entry-desc">Servidor Principal • Rápido</span>
+                            </div>
+                            <div class="stream-play-icon">
+                                <i data-lucide="play-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stream-entry" id="btnPillPlayer2" role="button" tabindex="0">
+                            <div class="stream-entry-info" style="flex:1;">
+                                <span class="stream-entry-name">Razer <span class="stream-badge">STREAMING</span></span>
+                                <span class="stream-entry-desc">Servidor Alternativo • Estável</span>
+                            </div>
+                            <div class="stream-play-icon">
+                                <i data-lucide="play-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="download-section">
+                        <span class="download-label">OPÇÕES DE DOWNLOAD</span>
+                        <div class="streams-list" id="streamsList">
+                            <div class="download-searching">Buscando fontes originais...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Overlay -->
+    <div class="player-overlay" id="playerOverlay">
+        <button class="close-player-btn" id="closePlayer" aria-label="Back">&lt; Voltar</button>
+        <div class="player-wrapper">
+            <div id="plyrWrapper" class="plyr-wrapper">
+                <iframe id="mainPlayer" src="" frameborder="0" allowfullscreen title="Video Player"></iframe>
+            </div>
+            <div id="videoFallbackContainer" class="video-fallback-hidden"></div>
+        </div>
+    </div>
+
+    <script src="js/list.js?v=24"></script>
+    <script src="js/api.js?v=23"></script>
+    <script src="js/player.js?v=23"></script>
+    <script src="js/app.js?v=25"></script>
+    <script>
+        // Dismiss splash after app scripts have loaded, with a fallback timeout
+        function hideSplash() {
+            var splash = document.getElementById('splashScreen');
+            if (splash && !splash.classList.contains('hide')) {
+                splash.classList.add('hide');
+                setTimeout(function() { splash.remove(); }, 600);
+            }
+        }
+
+        window.addEventListener('load', hideSplash);
+        setTimeout(hideSplash, 2500); // Fallback to always unlock the screen
+    </script>
+</body>
+</html>
