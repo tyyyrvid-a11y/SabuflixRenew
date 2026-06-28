@@ -303,7 +303,7 @@
                 }
             } else {
                 if (heroBtnMyList) {
-                    heroBtnMyList.innerHTML = '+';
+                    heroBtnMyList.innerHTML = '+ Minha Lista';
                     heroBtnMyList.style.color = 'white';
                 }
             }

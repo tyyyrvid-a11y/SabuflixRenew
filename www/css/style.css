@@ -386,7 +386,7 @@ textarea:focus-visible {
 }
 
 .catalog-row {
-    margin-bottom: 50px;
+    margin-bottom: 70px;
 }
 
 .row-header {
@@ -456,11 +456,9 @@ textarea:focus-visible {
     height: 135px;
 }
 
-/* Poster Card Wrapper — max-width constraint */
+/* Poster Card Wrapper */
 .poster-card-wrapper {
     flex-shrink: 0;
-    max-width: 240px;
-    overflow: hidden;
 }
 
 /* Custom Dropdown Pills */
@@ -1379,6 +1377,10 @@ textarea:focus-visible {
         margin-top: -30px;
     }
 
+    .catalog-row {
+        margin-bottom: 55px;
+    }
+
     .items-container {
         gap: 16px;
         -webkit-overflow-scrolling: touch;
@@ -1394,10 +1396,6 @@ textarea:focus-visible {
         width: 130px;
         height: 195px;
     }
-    .poster-card-wrapper {
-        max-width: 180px;
-    }
-
     .card-info {
         max-width: 160px;
     }
