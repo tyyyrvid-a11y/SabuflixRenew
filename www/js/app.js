@@ -1144,8 +1144,16 @@
         setupSidebar(); // this also loads the persisted tab
     }
 
-    // ─── Entry Point ──────────────────────────────────────────────────
+    // 🛠️ Entry Point 🛠️
     document.addEventListener('DOMContentLoaded', () => {
         initApp();
+    });
+
+    // --- Haptic Feedback for Mobile ---
+    document.addEventListener('click', (e) => {
+        const interactiveElement = e.target.closest('button, a, .poster-card, .btn-icon, .btn-primary, .pill-btn, .custom-dropdown-trigger, .bottom-nav-item');
+        if (interactiveElement && navigator.vibrate) {
+            navigator.vibrate(15);
+        }
     });
 })();
