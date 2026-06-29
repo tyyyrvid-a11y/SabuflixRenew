@@ -332,7 +332,6 @@
         </div>
         <div class="nav-actions desktop-only">
             <a href="#" class="nav-item" id="btnOpenSearch" aria-label="Search">Buscar</a>
-            <a href="#" class="nav-item" aria-label="Toggle theme">Tema</a>
         </div>
     </nav>
 
@@ -346,9 +345,9 @@
                 <div class="hero-meta" id="heroMeta"></div>
                 <p class="hero-overview" id="heroOverview"></p>
                 <div class="hero-buttons">
-                    <button class="btn-primary" id="heroPlay" aria-label="Play">▶ Assistir</button>
-                    <button class="pill-btn" id="heroBtnMyList" aria-label="Add to My List">+ Minha Lista</button>
-                    <button class="pill-btn" aria-label="More info">Detalhes</button>
+                    <button class="btn-primary" id="heroPlay" aria-label="Play"><i data-lucide="play" class="icon-fill"></i> Assistir</button>
+                    <button class="pill-btn" id="heroBtnMyList" aria-label="Add to My List"><i data-lucide="plus"></i> Minha Lista</button>
+                    <button class="pill-btn" aria-label="More info"><i data-lucide="info"></i> Detalhes</button>
                 </div>
             </div>
         </section>
@@ -422,7 +421,7 @@
             <div class="search-header">
                 <span style="font-weight: bold; margin-right: 10px; color: var(--text-secondary);">Buscar</span>
                 <input type="text" id="searchInput" placeholder="Search..." aria-label="Search movies and TV shows">
-                <button class="close-search" id="closeSearch" aria-label="Close search" style="font-family: 'Inter', sans-serif; font-weight: bold;">X</button>
+                <button class="close-search" id="closeSearch" aria-label="Close search"><i data-lucide="x"></i></button>
             </div>
             <div class="search-tabs">
                 <button class="search-tab active">Movies &amp; TV</button>
@@ -439,7 +438,7 @@
         <div class="details-gradient"></div>
         <div class="details-layout">
             <div class="details-top-controls">
-                <button class="pill-btn close-details" id="closeDetails" aria-label="Close details">X Fechar</button>
+                <button class="pill-btn close-details" id="closeDetails" aria-label="Close details"><i data-lucide="x"></i> Fechar</button>
             </div>
             <div class="details-content-split">
                 <div class="details-left">
@@ -448,7 +447,7 @@
                         <h1 class="details-title" id="detailsTitle"></h1>
                         <div class="details-meta" id="detailsMeta"></div>
                         <p class="details-overview" id="detailsOverview"></p>
-                        <button class="btn-primary details-btn-mylist" id="detailsBtnMyList" aria-label="Add to My List">+ Adicionar à Minha Lista</button>
+                        <button class="btn-primary details-btn-mylist" id="detailsBtnMyList" aria-label="Add to My List"><i data-lucide="plus"></i> Adicionar à Minha Lista</button>
                     </div>
                     <div class="series-selector-pills series-selector-pills-hidden" id="seriesSelector">
                         <div class="custom-dropdown" id="seasonDropdownWrapper">
@@ -511,7 +510,7 @@
 
     <!-- Player Overlay -->
     <div class="player-overlay" id="playerOverlay">
-        <button class="close-player-btn" id="closePlayer" aria-label="Back">&lt; Voltar</button>
+        <button class="close-player-btn" id="closePlayer" aria-label="Back"><i data-lucide="chevron-left"></i> Voltar</button>
         <div class="player-wrapper">
             <div id="plyrWrapper" class="plyr-wrapper">
                 <iframe id="mainPlayer" src="" frameborder="0" allowfullscreen title="Video Player"></iframe>

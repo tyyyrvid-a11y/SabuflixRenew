@@ -306,13 +306,15 @@
         const checkHeroList = () => {
             if (typeof userMyList !== 'undefined' && userMyList.includes(item.id.toString())) {
                 if (heroBtnMyList) {
-                    heroBtnMyList.innerHTML = 'Salvo';
+                    heroBtnMyList.innerHTML = '<i data-lucide="check"></i> Salvo';
                     heroBtnMyList.style.color = '#eab308';
+                    if (window.lucide) window.lucide.createIcons();
                 }
             } else {
                 if (heroBtnMyList) {
-                    heroBtnMyList.innerHTML = '+ Minha Lista';
+                    heroBtnMyList.innerHTML = '<i data-lucide="plus"></i> Minha Lista';
                     heroBtnMyList.style.color = 'white';
+                    if (window.lucide) window.lucide.createIcons();
                 }
             }
         };
@@ -916,16 +918,17 @@
         const checkDetailsList = () => {
             if (!btnMyList) return;
             if (typeof userMyList !== 'undefined' && userMyList.includes(id.toString())) {
-                btnMyList.innerHTML = 'Salvo Salvo na Lista';
+                btnMyList.innerHTML = '<i data-lucide="check"></i> Salvo na Lista';
                 btnMyList.style.background   = 'rgba(234, 179, 8, 0.2)';
                 btnMyList.style.borderColor   = '#eab308';
                 btnMyList.style.color         = '#eab308';
             } else {
-                btnMyList.innerHTML = '+ Adicionar à Minha Lista';
+                btnMyList.innerHTML = '<i data-lucide="plus"></i> Adicionar à Minha Lista';
                 btnMyList.style.background   = 'rgba(255,255,255,0.1)';
                 btnMyList.style.borderColor   = 'rgba(255,255,255,0.2)';
                 btnMyList.style.color         = 'white';
             }
+            if (window.lucide) window.lucide.createIcons();
         };
         checkDetailsList();
 
@@ -1437,6 +1440,7 @@
      * Bootstrap the entire application.
      */
     function initApp() {
+        if (window.lucide) window.lucide.createIcons();
         cacheDOMRefs();
         createLazyObserver();
         setupModalEvents();
