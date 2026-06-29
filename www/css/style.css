@@ -29,6 +29,49 @@
     /* Focus ring */
     --focus-ring: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 0 0 4px rgba(255, 255, 255, 0.08);
     --focus-glow: 0 0 12px 2px rgba(255, 255, 255, 0.12);
+
+    /* Radius scale (4 / 8 / 12 / 16 / 20 / pill) */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-pill: 30px;
+
+    /* 8pt spacing scale */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+
+    /* Glass surface tokens (shared by pill/icon buttons & dropdowns) */
+    --glass-grad: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    --glass-grad-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+    --glass-border-hover: rgba(255, 255, 255, 0.4);
+    --glass-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
+    --glass-shadow-hover: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* -----------------------------
+   GLASS SURFACE (shared base for pill/icon/dropdown controls)
+------------------------------ */
+.glass-surface {
+    background: var(--glass-grad);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    transition: background var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-fast);
+}
+.glass-surface:hover {
+    background: var(--glass-grad-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover);
 }
 
 /* -----------------------------
@@ -172,7 +215,7 @@ textarea:focus-visible {
     );
     background-size: 200% 100%;
     animation: shimmer 1.8s ease-in-out infinite;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     color: transparent !important;
     pointer-events: none;
     user-select: none;
@@ -234,7 +277,7 @@ textarea:focus-visible {
     align-items: center;
     justify-content: center;
     padding: 6px 16px;
-    border-radius: 20px;
+    border-radius: var(--radius-xl);
     font-weight: 600;
     font-size: 14px;
     will-change: transform;
@@ -344,14 +387,14 @@ textarea:focus-visible {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    background: var(--glass-grad);
     backdrop-filter: blur(16px) saturate(120%);
     -webkit-backdrop-filter: blur(16px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
     color: #fff;
     padding: 12px 32px;
-    border-radius: 30px;
+    border-radius: var(--radius-pill);
     font-size: 16px;
     font-weight: 600;
     display: flex;
@@ -363,8 +406,8 @@ textarea:focus-visible {
 }
 .btn-primary:hover {
     transform: scale(1.05);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
-    border-color: rgba(255, 255, 255, 0.4);
+    background: var(--glass-grad-hover);
+    border-color: var(--glass-border-hover);
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 .btn-primary:active {
@@ -372,11 +415,11 @@ textarea:focus-visible {
 }
 
 .btn-icon {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    background: var(--glass-grad);
     backdrop-filter: blur(16px) saturate(120%);
     -webkit-backdrop-filter: blur(16px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
     color: #fff;
     width: 45px;
     height: 45px;
@@ -389,10 +432,10 @@ textarea:focus-visible {
     will-change: transform;
 }
 .btn-icon:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
+    background: var(--glass-grad-hover);
     transform: scale(1.08);
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 6px 20px rgba(0, 0, 0, 0.4);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover);
 }
 .btn-icon:active {
     transform: scale(0.95);
@@ -503,12 +546,12 @@ textarea:focus-visible {
     user-select: none;
 }
 .custom-dropdown-trigger {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    background: var(--glass-grad);
     backdrop-filter: blur(16px) saturate(120%);
     -webkit-backdrop-filter: blur(16px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
-    border-radius: 30px;
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-pill);
     padding: 10px 20px;
     display: flex;
     align-items: center;
@@ -520,9 +563,9 @@ textarea:focus-visible {
     color: #fff;
 }
 .custom-dropdown-trigger:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 6px 20px rgba(0, 0, 0, 0.4);
+    background: var(--glass-grad-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover);
 }
 .custom-dropdown-trigger span {
     max-width: 250px;
@@ -546,7 +589,7 @@ textarea:focus-visible {
     left: 0;
     background: rgba(15, 15, 15, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     padding: 8px;
     min-width: 100%;
     max-height: 250px;
@@ -572,7 +615,7 @@ textarea:focus-visible {
 
 .custom-dropdown-item {
     padding: 10px 15px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 14px;
     color: var(--text-secondary);
@@ -600,7 +643,7 @@ textarea:focus-visible {
     min-width: 200px;
     width: 200px;
     height: 112px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background-color: var(--card-bg);
     background-size: cover;
     background-position: center;
@@ -628,7 +671,7 @@ textarea:focus-visible {
 }
 .poster-card:hover {
     transform: scale(1.05) translateY(-5px);
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: var(--glass-border-hover);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9);
 }
 .poster-card:hover::after {
@@ -708,7 +751,7 @@ textarea:focus-visible {
     max-width: 700px;
     background: #0f0f0f;
     border: 1px solid var(--border-color);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     padding: 20px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
     /* Animate in */
@@ -780,7 +823,7 @@ textarea:focus-visible {
     font-weight: 500;
     cursor: pointer;
     padding: 6px 12px;
-    border-radius: 20px;
+    border-radius: var(--radius-xl);
     transition: color var(--transition-fast), background var(--transition-fast);
 }
 .search-tab.active,
@@ -801,7 +844,7 @@ textarea:focus-visible {
     align-items: center;
     gap: 15px;
     padding: 10px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background var(--transition-fast), transform var(--transition-fast);
 }
@@ -887,14 +930,14 @@ textarea:focus-visible {
 }
 
 .pill-btn {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    background: var(--glass-grad);
     backdrop-filter: blur(16px) saturate(120%);
     -webkit-backdrop-filter: blur(16px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
     color: #fff;
     padding: 8px 20px;
-    border-radius: 30px;
+    border-radius: var(--radius-pill);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -906,9 +949,9 @@ textarea:focus-visible {
 .pill-btn:hover,
 .pill-btn.active {
     color: #fff;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 6px 20px rgba(0, 0, 0, 0.4);
+    background: var(--glass-grad-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover);
     transform: scale(1.03);
 }
 
@@ -930,7 +973,7 @@ textarea:focus-visible {
 }
 .details-poster {
     width: 220px;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     flex-shrink: 0;
 }
@@ -1151,14 +1194,14 @@ textarea:focus-visible {
     position: absolute;
     top: 30px;
     left: 30px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    background: var(--glass-grad);
     backdrop-filter: blur(16px) saturate(120%);
     -webkit-backdrop-filter: blur(16px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow);
     color: white;
     padding: 10px 20px;
-    border-radius: 30px;
+    border-radius: var(--radius-pill);
     cursor: pointer;
     z-index: 1010;
     display: flex;
@@ -1169,9 +1212,9 @@ textarea:focus-visible {
     will-change: transform;
 }
 .close-player-btn:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 6px 20px rgba(0, 0, 0, 0.4);
+    background: var(--glass-grad-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-shadow-hover);
     transform: scale(1.05);
 }
 .player-wrapper {
@@ -1210,7 +1253,7 @@ textarea:focus-visible {
     max-width: 440px;
     background: rgba(18, 18, 18, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
+    border-radius: var(--radius-xl);
     padding: 40px 32px;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
     /* Entrance animation: fade + scale */
@@ -1483,7 +1526,7 @@ textarea:focus-visible {
 
     .search-modal {
         max-width: 95%;
-        border-radius: 12px;
+        border-radius: var(--radius-md);
         padding: 16px;
     }
 
@@ -1494,7 +1537,7 @@ textarea:focus-visible {
     .modal-content {
         width: 95%;
         padding: 28px 20px;
-        border-radius: 16px;
+        border-radius: var(--radius-lg);
     }
 
     .auth-input {
