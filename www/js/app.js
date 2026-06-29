@@ -18,7 +18,7 @@
     const DOM = {};
     
     // Global tracker for active downloads progress
-    const activeDownloads = {};
+
 
     /**
      * Populate the DOM cache once on init.
@@ -415,9 +415,6 @@
             card.className = `poster-card ${isNumbered ? 'portrait' : ''}`;
             card.dataset.id = item.id;
             card.dataset.type = type;
-            if (item.is_download) {
-                card.dataset.localPath = item.local_path;
-            }
             card.dataset.src = `${IMG_BASE}${imgPath}`; // lazy-load
             card.title = titleStr;
             wrapper.appendChild(card);
@@ -652,101 +649,7 @@
         }
     }
 
-    /**
-     * Load the Downloads tab content.
-     */
-    async function loadDownloads() {
-        const catalog = DOM.catalog;
-        catalog.innerHTML = '';
-        const signal = freshPageSignal();
 
-        try {
-            if (DOM.heroBanner) DOM.heroBanner.style.display = 'none';
-            if (DOM.recommendedSection) DOM.recommendedSection.style.display = 'none';
-            catalog.classList.add('no-hero');
-
-            const downloadsList = typeof getDownloads === 'function' ? getDownloads() : [];
-            const activeFiles = Object.keys(activeDownloads);
-
-            if (downloadsList.length === 0 && activeFiles.length === 0) {
-                catalog.innerHTML = '<div style="color: var(--text-muted); padding: 50px; text-align: center; font-size: 1.2rem;">Nenhum download concluído.</div>';
-                return;
-            }
-
-            // Wrapper for downloads page
-            const container = document.createElement('div');
-            container.className = 'downloads-container';
-            container.style.padding = '0 5%';
-
-            // Active Downloads Section
-            if (activeFiles.length > 0) {
-                const activeSection = document.createElement('div');
-                activeSection.className = 'catalog-row';
-                activeSection.innerHTML = '<h2 class="row-title" style="margin-bottom:20px;">Downloads em Andamento</h2>';
-                
-                const activeList = document.createElement('div');
-                activeList.style.display = 'flex';
-                activeList.style.flexDirection = 'column';
-                activeList.style.gap = '15px';
-                
-                activeFiles.forEach(fileName => {
-                    const dl = activeDownloads[fileName];
-                    const pct = dl.contentLength ? Math.round((dl.bytes / dl.contentLength) * 100) : 0;
-                    const mbLoaded = (dl.bytes / 1048576).toFixed(1);
-                    const mbTotal = (dl.contentLength / 1048576).toFixed(1);
-                    
-                    const titleStr = dl.movie.title || dl.movie.name;
-                    const subtitle = dl.movie.season ? `T${dl.movie.season} : E${dl.movie.episode}` : (dl.movie.media_type === 'tv' ? 'TV' : 'FILME');
-                    const imgPath = dl.movie.backdrop_path || dl.movie.poster_path;
-                    
-                    const itemEl = document.createElement('div');
-                    itemEl.className = 'active-download-item';
-                    itemEl.innerHTML = `
-                        <div style="display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                            <img src="${IMG_BASE}${imgPath}" style="width: 80px; height: 45px; object-fit: cover; border-radius: 4px;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${titleStr} <span style="font-size:11px; color:#eab308; margin-left: 8px;">${subtitle}</span></div>
-                                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
-                                    <div id="progress-bar-${fileName}" style="width: ${pct}%; height: 100%; background: #e50914; transition: width 0.2s;"></div>
-                                </div>
-                                <div id="progress-text-${fileName}" style="font-size: 11px; color: var(--text-muted);">${pct}% (${mbLoaded} MB / ${mbTotal} MB)</div>
-                            </div>
-                        </div>
-                    `;
-                    activeList.appendChild(itemEl);
-                });
-                
-                activeSection.appendChild(activeList);
-                container.appendChild(activeSection);
-            }
-
-            // Completed Downloads Section
-            if (downloadsList.length > 0) {
-                const formattedList = downloadsList.map((item) => ({
-                    id: item.tmdb_id,
-                    title: item.title,
-                    media_type: item.media_type,
-                    poster_path: item.poster_path,
-                    is_download: true,
-                    local_path: item.local_path
-                }));
-                
-                // create a temporary container to use renderRow, then append its children to our main container
-                const tempDiv = document.createElement('div');
-                renderRow(tempDiv, 'Meus Downloads', formattedList, 'movie');
-                
-                while (tempDiv.firstChild) {
-                    container.appendChild(tempDiv.firstChild);
-                }
-            }
-            
-            catalog.appendChild(container);
-            
-        } catch (e) {
-            if (signal.aborted) return;
-            catalog.innerHTML = '<div style="color: red; padding: 50px;">Erro ao carregar os downloads.</div>';
-        }
-    }
 
     /**
      * Load the Discover tab content.
@@ -825,8 +728,7 @@
             home:      loadHome,
             discover:  loadDiscover,
             series:    loadSeries,
-            mylist:    loadMyList,
-            downloads: loadDownloads
+            mylist:    loadMyList
         };
 
         // Restore persisted tab
@@ -1341,90 +1243,7 @@
             if (finalUrl.startsWith('http://')) {
                 finalUrl = 'https://sabuflix.ru1731998.workers.dev/?url=' + encodeURIComponent(finalUrl);
             }
-
-            if (typeof isNativeDownloadAvailable === 'function' && isNativeDownloadAvailable()) {
-                // Determine season/episode if series
-                let sNum = null;
-                let eNum = null;
-                const sLabel = DOM.seasonLabel ? DOM.seasonLabel.textContent : '';
-                const eLabel = DOM.episodeLabel ? DOM.episodeLabel.textContent : '';
-                
-                // Extremely hacky but works since we know currentMovie type
-                const isSeries = currentMovie && (currentMovie.media_type === 'tv' || currentMovie.media_type === 'series' || currentMovie.seasons);
-                if (isSeries) {
-                     // Try to extract from current DOM state since they aren't globally stored
-                     const activeS = DOM.seasonMenu.querySelector('.custom-dropdown-item.active');
-                     if (activeS) sNum = activeS.dataset.season;
-                     const activeE = DOM.episodeMenu.querySelector('.custom-dropdown-item.active');
-                     if (activeE) eNum = activeE.dataset.ep;
-                }
-
-                const safeTitle = (currentMovie.title || currentMovie.name).replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                const fileName = `sabuflix_${currentMovie.id}_${isSeries ? 'S'+sNum+'E'+eNum : 'movie'}_${Date.now()}.mp4`;
-                
-                alert('Iniciando o download do arquivo. Acompanhe o progresso na aba de Downloads!');
-                
-                const downloadMeta = { ...currentMovie, season: sNum, episode: eNum };
-                activeDownloads[fileName] = { movie: downloadMeta, bytes: 0, contentLength: 1 };
-                
-                let progressListener;
-                try {
-                    progressListener = await window.Capacitor.Plugins.Filesystem.addListener('progress', (progress) => {
-                        if (progress.url === finalUrl) {
-                            activeDownloads[fileName].bytes = progress.bytes;
-                            activeDownloads[fileName].contentLength = progress.contentLength;
-                            
-                            const progressEl = document.getElementById('progress-bar-' + fileName);
-                            if (progressEl) {
-                                const pct = Math.round((progress.bytes / progress.contentLength) * 100) || 0;
-                                progressEl.style.width = pct + '%';
-                                
-                                const textEl = document.getElementById('progress-text-' + fileName);
-                                if (textEl) {
-                                    const mbLoaded = (progress.bytes / 1048576).toFixed(1);
-                                    const mbTotal = (progress.contentLength / 1048576).toFixed(1);
-                                    textEl.textContent = `${pct}% (${mbLoaded} MB / ${mbTotal} MB)`;
-                                }
-                            }
-                        }
-                    });
-                } catch (err) {
-                    console.warn('Progress listener not supported', err);
-                }
-
-                try {
-                    const result = await window.Capacitor.Plugins.Filesystem.downloadFile({
-                        url: finalUrl,
-                        path: fileName,
-                        directory: 'DATA',
-                        progress: true
-                    });
-                    
-                    if (progressListener) progressListener.remove();
-                    delete activeDownloads[fileName];
-                    
-                    if (typeof saveToDownloads === 'function') {
-                        saveToDownloads(downloadMeta, result.path || result.uri, fileName);
-                    }
-                    
-                    if (DOM.catalog && DOM.catalog.querySelector('.downloads-container')) {
-                        loadDownloads();
-                    } else {
-                        alert('Download concluído com sucesso! Verifique a aba Meus Downloads.');
-                    }
-                } catch (e) {
-                    if (progressListener) progressListener.remove();
-                    delete activeDownloads[fileName];
-                    if (DOM.catalog && DOM.catalog.querySelector('.downloads-container')) {
-                        loadDownloads();
-                    }
-                    console.error('Download error:', e);
-                    alert('Erro no download nativo. O arquivo pode ser muito grande ou a fonte negou o acesso. Tentando abrir no navegador...');
-                    window.open(finalUrl, '_blank');
-                }
-            } else {
-                window.open(finalUrl, '_blank');
-            }
+            window.open(finalUrl, '_blank');
         }
     }
 
