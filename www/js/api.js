@@ -242,7 +242,7 @@ const API = {
     async getDetails(id, type = 'movie') {
         const t = _normalizeType(type);
         return _tmdbFetch(
-            `${TMDB_BASE_URL}/${t}/${id}?api_key=${TMDB_API_KEY}&language=pt-BR`
+            `${TMDB_BASE_URL}/${t}/${id}?api_key=${TMDB_API_KEY}&language=pt-BR&append_to_response=release_dates,content_ratings`
         );
     },
 

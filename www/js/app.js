@@ -16,6 +16,9 @@
     // ─── Cached DOM References ────────────────────────────────────────
     /** @type {Object<string, HTMLElement|null>} */
     const DOM = {};
+    
+    // Global tracker for active downloads progress
+    const activeDownloads = {};
 
     /**
      * Populate the DOM cache once on init.
@@ -33,6 +36,8 @@
         DOM.detailsBackdrop  = document.getElementById('detailsBackdrop');
         DOM.detailsTitle     = document.getElementById('detailsTitle');
         DOM.detailsBadge     = document.getElementById('detailsBadge');
+        DOM.detailsMeta      = document.getElementById('detailsMeta');
+        DOM.detailsOverview  = document.getElementById('detailsOverview');
         DOM.detailsBtnMyList = document.getElementById('detailsBtnMyList');
         DOM.detailsRightPanel = document.getElementById('detailsRightPanel');
         DOM.closeDetails     = document.getElementById('closeDetails');
@@ -270,6 +275,8 @@
         const heroBtnMyList = DOM.heroBtnMyList;
 
         if (!banner) return;
+        banner.style.display = 'flex';
+        DOM.catalog.classList.remove('no-hero');
 
         const type = item.media_type || defaultType;
 
@@ -388,7 +395,7 @@
             const titleStr = item.title || item.name;
             const type     = item.media_type || defaultType || 'movie';
             const year     = (item.release_date || item.first_air_date || '').split('-')[0];
-            const imgPath  = item.backdrop_path || item.poster_path;
+            const imgPath  = isNumbered ? (item.poster_path || item.backdrop_path) : (item.backdrop_path || item.poster_path);
 
             const wrapper = document.createElement('div');
             wrapper.className = 'poster-card-wrapper';
@@ -405,9 +412,12 @@
             }
 
             const card = document.createElement('div');
-            card.className = 'poster-card';
+            card.className = `poster-card ${isNumbered ? 'portrait' : ''}`;
             card.dataset.id = item.id;
             card.dataset.type = type;
+            if (item.is_download) {
+                card.dataset.localPath = item.local_path;
+            }
             card.dataset.src = `${IMG_BASE}${imgPath}`; // lazy-load
             card.title = titleStr;
             wrapper.appendChild(card);
@@ -444,6 +454,79 @@
         });
     }
 
+    // ─── Continue Watching Row Rendering ────────────────────────────
+
+    function renderContinueWatchingRow(container, items) {
+        if (!items || items.length === 0) return;
+
+        const row = document.createElement('div');
+        row.className = 'catalog-row continue-watching-row';
+
+        const header = document.createElement('div');
+        header.className = 'row-header';
+        header.innerHTML = `<h2 class="row-title">Continuar Assistindo</h2>`;
+        row.appendChild(header);
+
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'items-container';
+        const fragment = document.createDocumentFragment();
+
+        items.forEach((item, index) => {
+            const titleStr = item.title;
+            const type     = item.media_type || 'movie';
+            const imgPath  = item.poster_path;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'poster-card-wrapper';
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translateY(12px)';
+            wrapper.style.transition = `opacity 0.4s ease ${index * 0.04}s, transform 0.4s ease ${index * 0.04}s`;
+
+            const card = document.createElement('div');
+            card.className = 'poster-card';
+            // We use standard id to hook into existing click delegation
+            card.dataset.id = item.tmdb_id;
+            card.dataset.type = type;
+            // Also store season and episode so openDetails could ideally auto-select them
+            if (item.season && item.episode) {
+                card.dataset.season = item.season;
+                card.dataset.episode = item.episode;
+            }
+            card.dataset.src = `${IMG_BASE}${imgPath}`; 
+            card.title = titleStr;
+            wrapper.appendChild(card);
+
+            if (lazyObserver) {
+                lazyObserver.observe(card);
+            } else {
+                card.style.backgroundImage = `url('${IMG_BASE}${imgPath}')`;
+            }
+
+            const info = document.createElement('div');
+            info.className = 'card-info';
+            let subtitle = type === 'tv' || type === 'series' ? 'TV' : 'FILME';
+            if (item.season && item.episode) {
+                subtitle = `T${item.season} : E${item.episode}`;
+            }
+            info.innerHTML = `<div class="card-title">${titleStr}</div><div class="card-meta"><span style="color:#eab308; font-weight:bold;">${subtitle}</span></div>`;
+            wrapper.appendChild(info);
+
+            fragment.appendChild(wrapper);
+        });
+
+        itemsContainer.appendChild(fragment);
+        row.appendChild(itemsContainer);
+        container.appendChild(row);
+
+        requestAnimationFrame(() => {
+            const wrappers = row.querySelectorAll('.poster-card-wrapper');
+            wrappers.forEach((w) => {
+                w.style.opacity = '1';
+                w.style.transform = 'translateY(0)';
+            });
+        });
+    }
+
     // ─── Event Delegation for Poster Cards ────────────────────────────
 
     /**
@@ -455,7 +538,11 @@
         DOM.catalog.addEventListener('click', (e) => {
             const card = e.target.closest('.poster-card');
             if (card && card.dataset.id) {
-                openDetails(card.dataset.id, card.dataset.type);
+                if (card.dataset.localPath && typeof openOfflinePlayer === 'function') {
+                    openOfflinePlayer(card.dataset.localPath, card.title);
+                } else {
+                    openDetails(card.dataset.id, card.dataset.type, card.dataset.season, card.dataset.episode);
+                }
             }
         });
     }
@@ -488,6 +575,14 @@
                 const heroItem = trendingResults[randomIndex];
                 trendingResults.splice(randomIndex, 1);
                 setupHeroBanner(heroItem, 'movie', signal);
+            }
+
+            // Render Continue Watching
+            if (typeof window.getContinueWatching === 'function') {
+                const cwItems = window.getContinueWatching();
+                if (cwItems && cwItems.length > 0) {
+                    renderContinueWatchingRow(catalog, cwItems);
+                }
             }
 
             // Recommendations based on watch history
@@ -527,6 +622,10 @@
         const signal = freshPageSignal();
 
         try {
+            if (DOM.heroBanner) DOM.heroBanner.style.display = 'none';
+            if (DOM.recommendedSection) DOM.recommendedSection.style.display = 'none';
+            catalog.classList.add('no-hero');
+
             if (typeof getFullMyList !== 'function') return;
             const myList = await getFullMyList();
             if (signal.aborted) return;
@@ -550,6 +649,102 @@
         } catch (e) {
             if (signal.aborted) return;
             catalog.innerHTML = '<div style="color: red; padding: 50px;">Erro ao carregar a lista.</div>';
+        }
+    }
+
+    /**
+     * Load the Downloads tab content.
+     */
+    async function loadDownloads() {
+        const catalog = DOM.catalog;
+        catalog.innerHTML = '';
+        const signal = freshPageSignal();
+
+        try {
+            if (DOM.heroBanner) DOM.heroBanner.style.display = 'none';
+            if (DOM.recommendedSection) DOM.recommendedSection.style.display = 'none';
+            catalog.classList.add('no-hero');
+
+            const downloadsList = typeof getDownloads === 'function' ? getDownloads() : [];
+            const activeFiles = Object.keys(activeDownloads);
+
+            if (downloadsList.length === 0 && activeFiles.length === 0) {
+                catalog.innerHTML = '<div style="color: var(--text-muted); padding: 50px; text-align: center; font-size: 1.2rem;">Nenhum download concluído.</div>';
+                return;
+            }
+
+            // Wrapper for downloads page
+            const container = document.createElement('div');
+            container.className = 'downloads-container';
+            container.style.padding = '0 5%';
+
+            // Active Downloads Section
+            if (activeFiles.length > 0) {
+                const activeSection = document.createElement('div');
+                activeSection.className = 'catalog-row';
+                activeSection.innerHTML = '<h2 class="row-title" style="margin-bottom:20px;">Downloads em Andamento</h2>';
+                
+                const activeList = document.createElement('div');
+                activeList.style.display = 'flex';
+                activeList.style.flexDirection = 'column';
+                activeList.style.gap = '15px';
+                
+                activeFiles.forEach(fileName => {
+                    const dl = activeDownloads[fileName];
+                    const pct = dl.contentLength ? Math.round((dl.bytes / dl.contentLength) * 100) : 0;
+                    const mbLoaded = (dl.bytes / 1048576).toFixed(1);
+                    const mbTotal = (dl.contentLength / 1048576).toFixed(1);
+                    
+                    const titleStr = dl.movie.title || dl.movie.name;
+                    const subtitle = dl.movie.season ? `T${dl.movie.season} : E${dl.movie.episode}` : (dl.movie.media_type === 'tv' ? 'TV' : 'FILME');
+                    const imgPath = dl.movie.backdrop_path || dl.movie.poster_path;
+                    
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'active-download-item';
+                    itemEl.innerHTML = `
+                        <div style="display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                            <img src="${IMG_BASE}${imgPath}" style="width: 80px; height: 45px; object-fit: cover; border-radius: 4px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${titleStr} <span style="font-size:11px; color:#eab308; margin-left: 8px;">${subtitle}</span></div>
+                                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
+                                    <div id="progress-bar-${fileName}" style="width: ${pct}%; height: 100%; background: #e50914; transition: width 0.2s;"></div>
+                                </div>
+                                <div id="progress-text-${fileName}" style="font-size: 11px; color: var(--text-muted);">${pct}% (${mbLoaded} MB / ${mbTotal} MB)</div>
+                            </div>
+                        </div>
+                    `;
+                    activeList.appendChild(itemEl);
+                });
+                
+                activeSection.appendChild(activeList);
+                container.appendChild(activeSection);
+            }
+
+            // Completed Downloads Section
+            if (downloadsList.length > 0) {
+                const formattedList = downloadsList.map((item) => ({
+                    id: item.tmdb_id,
+                    title: item.title,
+                    media_type: item.media_type,
+                    poster_path: item.poster_path,
+                    is_download: true,
+                    local_path: item.local_path
+                }));
+                
+                // create a temporary container to use renderRow, then append its children to our main container
+                const tempDiv = document.createElement('div');
+                renderRow(tempDiv, 'Meus Downloads', formattedList, 'movie');
+                
+                while (tempDiv.firstChild) {
+                    container.appendChild(tempDiv.firstChild);
+                }
+            }
+            
+            catalog.appendChild(container);
+            
+        } catch (e) {
+            if (signal.aborted) return;
+            catalog.innerHTML = '<div style="color: red; padding: 50px;">Erro ao carregar os downloads.</div>';
         }
     }
 
@@ -627,10 +822,11 @@
     function setupSidebar() {
         const navItems = document.querySelectorAll('.nav-links .nav-item');
         const tabLoaders = {
-            home:     loadHome,
-            discover: loadDiscover,
-            series:   loadSeries,
-            mylist:   loadMyList
+            home:      loadHome,
+            discover:  loadDiscover,
+            series:    loadSeries,
+            mylist:    loadMyList,
+            downloads: loadDownloads
         };
 
         // Restore persisted tab
@@ -761,8 +957,10 @@
      * Open the details modal for a movie or series.
      * @param {number|string} id   - TMDB ID
      * @param {string}        type - 'movie' | 'series' | 'tv'
+     * @param {number|null}   targetSeason
+     * @param {number|null}   targetEpisode
      */
-    async function openDetails(id, type) {
+    async function openDetails(id, type, targetSeason = null, targetEpisode = null) {
         currentTmdbId = id;
         saveToHistory(id, type);
 
@@ -780,8 +978,14 @@
                 const epActive = document.querySelector('.ep-item.active');
                 const season   = sSelect ? sSelect.value : 1;
                 const episode  = epActive ? epActive.dataset.ep : 1;
+                if (currentMovie && typeof window.saveToContinueWatching === 'function') {
+                    window.saveToContinueWatching(currentMovie, type, season, episode);
+                }
                 window.player.playEmbed(currentTmdbId, type, season, episode, server);
             } else {
+                if (currentMovie && typeof window.saveToContinueWatching === 'function') {
+                    window.saveToContinueWatching(currentMovie, type, null, null);
+                }
                 window.player.playEmbed(currentTmdbId, type, null, null, server);
             }
         };
@@ -851,6 +1055,40 @@
             if (titleEl)    titleEl.textContent = details.title || details.name;
             if (badgeEl)    badgeEl.textContent = (type === 'tv' || type === 'series') ? 'SERIES' : 'FILM';
 
+            const metaEl     = DOM.detailsMeta;
+            const overviewEl = DOM.detailsOverview;
+            
+            if (overviewEl) overviewEl.textContent = details.overview || 'Sinopse indisponível.';
+            
+            if (metaEl) {
+                const year = (details.release_date || details.first_air_date || '').split('-')[0];
+                const rating = (details.vote_average || 0).toFixed(1);
+                
+                let ageRating = '';
+                if (type === 'tv' || type === 'series') {
+                    const brRating = details.content_ratings?.results?.find(r => r.iso_3166_1 === 'BR');
+                    if (brRating && brRating.rating) ageRating = brRating.rating;
+                    else {
+                        const usRating = details.content_ratings?.results?.find(r => r.iso_3166_1 === 'US');
+                        if (usRating && usRating.rating) ageRating = usRating.rating;
+                    }
+                } else {
+                    const brRelease = details.release_dates?.results?.find(r => r.iso_3166_1 === 'BR');
+                    if (brRelease && brRelease.release_dates && brRelease.release_dates[0].certification) {
+                        ageRating = brRelease.release_dates[0].certification;
+                    } else {
+                        const usRelease = details.release_dates?.results?.find(r => r.iso_3166_1 === 'US');
+                        if (usRelease && usRelease.release_dates && usRelease.release_dates[0].certification) {
+                            ageRating = usRelease.release_dates[0].certification;
+                        }
+                    }
+                }
+                if (!ageRating) ageRating = 'L';
+                if (ageRating === 'L' || ageRating === 'G' || ageRating === 'PG') ageRating = 'Livre';
+                
+                metaEl.innerHTML = `<span style="color: #eab308; font-weight: bold;">⭐ ${rating}</span> <span>${year}</span> <span style="border: 1px solid rgba(255,255,255,0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${ageRating}</span>`;
+            }
+
             if (!currentImdbId) {
                 if (streamsList) streamsList.innerHTML = '<div style="color:#ef4444; text-align: right;">IMDB ID missing.</div>';
                 
@@ -858,7 +1096,7 @@
             }
 
             if (type === 'tv' || type === 'series') {
-                setupSeriesSelector(details);
+                setupSeriesSelector(details, targetSeason, targetEpisode);
             } else {
                 const streams = await API.getStreams(currentImdbId, 'movie');
                 renderStreams(streams);
@@ -880,8 +1118,10 @@
      * Set up the season/episode selector for a TV series.
      * Uses a SINGLE global click listener (replaced, never stacked).
      * @param {Object} details - Full TMDB series details with seasons array
+     * @param {number|string|null} targetSeason
+     * @param {number|string|null} targetEpisode
      */
-    async function setupSeriesSelector(details) {
+    async function setupSeriesSelector(details, targetSeason = null, targetEpisode = null) {
         const seriesSelector = DOM.seriesSelector;
         const seasonMenu     = DOM.seasonMenu;
         const seasonLabel    = DOM.seasonLabel;
@@ -974,7 +1214,17 @@
                     };
                 });
 
-                if (epItems.length > 0) epItems[0].click();
+                if (epItems.length > 0) {
+                    let clicked = false;
+                    if (targetEpisode) {
+                        const targetItem = Array.from(epItems).find(i => i.dataset.ep == targetEpisode);
+                        if (targetItem) {
+                            targetItem.click();
+                            clicked = true;
+                        }
+                    }
+                    if (!clicked) epItems[0].click();
+                }
             } catch (e) {
                 episodeLabel.textContent = 'Erro ao carregar';
             }
@@ -996,7 +1246,15 @@
                 };
             });
 
-            seasonItems[0].click();
+            let clickedSeason = false;
+            if (targetSeason) {
+                const targetItem = Array.from(seasonItems).find(i => i.dataset.season == targetSeason);
+                if (targetItem) {
+                    targetItem.click();
+                    clickedSeason = true;
+                }
+            }
+            if (!clickedSeason) seasonItems[0].click();
         } else {
             seasonLabel.textContent = 'Sem temporadas';
             episodeLabel.textContent = 'Sem episódios';
@@ -1047,12 +1305,21 @@
                     <span class="stream-entry-name">${provider} ${sizeTag}</span>
                     <span class="stream-entry-desc">${qualityTitle}</span>
                 </div>
-                <button style="background: none; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: background 0.2s;">
-                    Baixar
-                </button>`;
+                <div class="stream-entry-actions" style="display: flex; gap: 8px;">
+                    <button onclick="watchNative(${idx})" title="Assistir Nativo (AirPlay)" style="background: none; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: background 0.2s;">
+                        <i data-lucide="monitor-play"></i>
+                    </button>
+                    <button onclick="castStream(${idx})" title="Transmitir (Chromecast)" style="background: none; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: background 0.2s;">
+                        <i data-lucide="cast"></i>
+                    </button>
+                    <button onclick="downloadStream(${idx})" title="Baixar" style="background: none; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: background 0.2s;">
+                        <i data-lucide="download"></i>
+                    </button>
+                </div>`;
 
-            // Use event delegation on the entry itself
-            entry.addEventListener('click', () => downloadStream(idx));
+            // Parse lucide icons for the newly added buttons
+            setTimeout(() => { if(window.lucide) window.lucide.createIcons(); }, 10);
+
             fragment.appendChild(entry);
         });
 
@@ -1067,19 +1334,232 @@
      * Open a stream URL in a new tab (with CORS proxy fallback for HTTP).
      * @param {number} index - Index into currentStreams
      */
-    function downloadStream(index) {
+    async function downloadStream(index) {
         const stream = currentStreams[index];
         if (stream && stream.url) {
             let finalUrl = stream.url;
             if (finalUrl.startsWith('http://')) {
                 finalUrl = 'https://sabuflix.ru1731998.workers.dev/?url=' + encodeURIComponent(finalUrl);
             }
-            window.open(finalUrl, '_blank');
+
+            if (typeof isNativeDownloadAvailable === 'function' && isNativeDownloadAvailable()) {
+                // Determine season/episode if series
+                let sNum = null;
+                let eNum = null;
+                const sLabel = DOM.seasonLabel ? DOM.seasonLabel.textContent : '';
+                const eLabel = DOM.episodeLabel ? DOM.episodeLabel.textContent : '';
+                
+                // Extremely hacky but works since we know currentMovie type
+                const isSeries = currentMovie && (currentMovie.media_type === 'tv' || currentMovie.media_type === 'series' || currentMovie.seasons);
+                if (isSeries) {
+                     // Try to extract from current DOM state since they aren't globally stored
+                     const activeS = DOM.seasonMenu.querySelector('.custom-dropdown-item.active');
+                     if (activeS) sNum = activeS.dataset.season;
+                     const activeE = DOM.episodeMenu.querySelector('.custom-dropdown-item.active');
+                     if (activeE) eNum = activeE.dataset.ep;
+                }
+
+                const safeTitle = (currentMovie.title || currentMovie.name).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const fileName = `sabuflix_${currentMovie.id}_${isSeries ? 'S'+sNum+'E'+eNum : 'movie'}_${Date.now()}.mp4`;
+                
+                alert('Iniciando o download do arquivo. Acompanhe o progresso na aba de Downloads!');
+                
+                const downloadMeta = { ...currentMovie, season: sNum, episode: eNum };
+                activeDownloads[fileName] = { movie: downloadMeta, bytes: 0, contentLength: 1 };
+                
+                let progressListener;
+                try {
+                    progressListener = await window.Capacitor.Plugins.Filesystem.addListener('progress', (progress) => {
+                        if (progress.url === finalUrl) {
+                            activeDownloads[fileName].bytes = progress.bytes;
+                            activeDownloads[fileName].contentLength = progress.contentLength;
+                            
+                            const progressEl = document.getElementById('progress-bar-' + fileName);
+                            if (progressEl) {
+                                const pct = Math.round((progress.bytes / progress.contentLength) * 100) || 0;
+                                progressEl.style.width = pct + '%';
+                                
+                                const textEl = document.getElementById('progress-text-' + fileName);
+                                if (textEl) {
+                                    const mbLoaded = (progress.bytes / 1048576).toFixed(1);
+                                    const mbTotal = (progress.contentLength / 1048576).toFixed(1);
+                                    textEl.textContent = `${pct}% (${mbLoaded} MB / ${mbTotal} MB)`;
+                                }
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.warn('Progress listener not supported', err);
+                }
+
+                try {
+                    const result = await window.Capacitor.Plugins.Filesystem.downloadFile({
+                        url: finalUrl,
+                        path: fileName,
+                        directory: 'DATA',
+                        progress: true
+                    });
+                    
+                    if (progressListener) progressListener.remove();
+                    delete activeDownloads[fileName];
+                    
+                    if (typeof saveToDownloads === 'function') {
+                        saveToDownloads(downloadMeta, result.path || result.uri, fileName);
+                    }
+                    
+                    if (DOM.catalog && DOM.catalog.querySelector('.downloads-container')) {
+                        loadDownloads();
+                    } else {
+                        alert('Download concluído com sucesso! Verifique a aba Meus Downloads.');
+                    }
+                } catch (e) {
+                    if (progressListener) progressListener.remove();
+                    delete activeDownloads[fileName];
+                    if (DOM.catalog && DOM.catalog.querySelector('.downloads-container')) {
+                        loadDownloads();
+                    }
+                    console.error('Download error:', e);
+                    alert('Erro no download nativo. O arquivo pode ser muito grande ou a fonte negou o acesso. Tentando abrir no navegador...');
+                    window.open(finalUrl, '_blank');
+                }
+            } else {
+                window.open(finalUrl, '_blank');
+            }
         }
     }
 
-    // Expose downloadStream globally so inline onclick still works as fallback
+    /**
+     * Launch native HTML5 player (supports AirPlay on iOS)
+     */
+    function watchNative(index) {
+        const stream = currentStreams[index];
+        if (stream && stream.url) {
+            let finalUrl = stream.url;
+            if (finalUrl.startsWith('http://')) {
+                finalUrl = 'https://sabuflix.ru1731998.workers.dev/?url=' + encodeURIComponent(finalUrl);
+            }
+            openOfflinePlayer(finalUrl, currentMovie.title || currentMovie.name);
+        }
+    }
+
+    /**
+     * Chromecast Integration via Google Cast API
+     */
+    function castStream(index) {
+        const stream = currentStreams[index];
+        if (!stream || !stream.url) return;
+
+        let finalUrl = stream.url;
+        if (finalUrl.startsWith('http://')) {
+            finalUrl = 'https://sabuflix.ru1731998.workers.dev/?url=' + encodeURIComponent(finalUrl);
+        }
+
+        if (typeof cast === 'undefined' || !cast.framework) {
+            alert('Chromecast não está disponível ou a API do Google Cast não carregou.');
+            return;
+        }
+
+        const castContext = cast.framework.CastContext.getInstance();
+        
+        // If not connected, prompt to connect
+        if (castContext.getCastState() !== cast.framework.CastState.CONNECTED) {
+            castContext.requestSession().then(() => {
+                sendMediaToChromecast(finalUrl);
+            }).catch(e => {
+                console.error('Cast session failed:', e);
+            });
+        } else {
+            sendMediaToChromecast(finalUrl);
+        }
+    }
+
+    function sendMediaToChromecast(url) {
+        const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+        if (!castSession) return;
+
+        const mediaInfo = new chrome.cast.media.MediaInfo(url, 'video/mp4');
+        mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+        mediaInfo.metadata.metadataType = chrome.cast.media.MetadataType.GENERIC;
+        mediaInfo.metadata.title = currentMovie.title || currentMovie.name;
+        
+        const request = new chrome.cast.media.LoadRequest(mediaInfo);
+        
+        castSession.loadMedia(request).then(
+            () => alert('Reproduzindo no Chromecast!'),
+            (errorCode) => alert('Erro ao transmitir: ' + errorCode)
+        );
+    }
+
+    // ─── Offline Player ───────────────────────────────────────────────
+
+    /**
+     * Opens a local video file in a native HTML5 video player.
+     * @param {string} localPath - Native path or URI of the video file
+     * @param {string} title - Title of the video
+     */
+    function openOfflinePlayer(localPath, title) {
+        if (!localPath) return;
+
+        const overlay = document.getElementById('playerOverlay');
+        const plyrWrapper = document.getElementById('plyrWrapper');
+        const fallback = document.getElementById('videoFallbackContainer');
+
+        if (!overlay || !plyrWrapper || !fallback) return;
+
+        // Hide iframe, show native video container
+        plyrWrapper.style.display = 'none';
+        fallback.style.display = 'block';
+        fallback.className = 'video-fallback'; // remove hidden class
+
+        // Convert the native file path to a URL the WebView can load
+        let webViewUrl = localPath;
+        if (window.Capacitor && window.Capacitor.convertFileSrc) {
+            webViewUrl = window.Capacitor.convertFileSrc(localPath);
+        }
+
+        fallback.innerHTML = `
+            <video controls autoplay webkit-playsinline playsinline x-webkit-airplay="allow" style="width: 100%; height: 100%; object-fit: contain; background: black;">
+                <source src="${webViewUrl}" type="video/mp4">
+                Seu navegador não suporta a tag de vídeo.
+            </video>
+        `;
+
+        overlay.classList.add('active');
+
+        // Override close button just for the offline player
+        const closeBtn = document.getElementById('closePlayer');
+        if (closeBtn) {
+            // Remove previous listeners by replacing the node (easiest way)
+            const newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+
+            newCloseBtn.addEventListener('click', () => {
+                fallback.innerHTML = '';
+                fallback.style.display = 'none';
+                plyrWrapper.style.display = 'block';
+                overlay.classList.remove('active');
+                
+                // Re-setup standard modal events to restore iframe logic
+                if (typeof setupModalEvents === 'function') setupModalEvents();
+            });
+        }
+    }
+
+    // Expose globally
+    window.openOfflinePlayer = openOfflinePlayer;
     window.downloadStream = downloadStream;
+    window.watchNative = watchNative;
+    window.castStream = castStream;
+
+    // Inicializa as opções padrão de cast se o Cast SDK carregar
+    window.__onGCastApiAvailable = function(isAvailable) {
+        if (isAvailable) {
+            cast.framework.CastContext.getInstance().setOptions({
+                receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+            });
+        }
+    };
 
     // ─── Modal Events ─────────────────────────────────────────────────
 

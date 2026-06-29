@@ -11,9 +11,12 @@ let userMyList = [];
 let toggleMyList;
 let getFullMyList;
 let fetchMyList;
+let saveToContinueWatching;
+let getContinueWatching;
 
 (function () {
     const STORAGE_KEY = 'sabuflix_my_list';
+    const CONTINUE_WATCHING_KEY = 'sabuflix_continue_watching';
 
     /**
      * Load the list from local storage.
@@ -80,10 +83,63 @@ let fetchMyList;
         return !isSaved;
     }
 
+    /**
+     * Save an item to the "Continue Watching" list.
+     * Moves it to the front if it already exists.
+     * @param {Object} itemDetails - TMDB item object
+     * @param {string} mediaType   - 'movie' ou 'tv'
+     * @param {number|null} season 
+     * @param {number|null} episode 
+     */
+    function _saveToContinueWatching(itemDetails, mediaType, season = null, episode = null) {
+        const tmdbId = itemDetails.id.toString();
+        let list = [];
+        try {
+            const data = localStorage.getItem(CONTINUE_WATCHING_KEY);
+            if (data) list = JSON.parse(data);
+        } catch (err) {}
+
+        // Remove if exists to move to top
+        list = list.filter(i => i.tmdb_id.toString() !== tmdbId);
+
+        list.unshift({
+            tmdb_id: tmdbId,
+            media_type: mediaType,
+            title: itemDetails.title || itemDetails.name,
+            poster_path: itemDetails.poster_path,
+            season: season,
+            episode: episode,
+            updated_at: new Date().toISOString()
+        });
+
+        // Limit to 20 items
+        if (list.length > 20) {
+            list = list.slice(0, 20);
+        }
+
+        localStorage.setItem(CONTINUE_WATCHING_KEY, JSON.stringify(list));
+    }
+
+    /**
+     * Get the "Continue Watching" list.
+     * @returns {Array} Array of history items
+     */
+    function _getContinueWatching() {
+        try {
+            const data = localStorage.getItem(CONTINUE_WATCHING_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (err) {
+            console.error('Failed to read continue watching list', err);
+            return [];
+        }
+    }
+
     // Expose public API
     toggleMyList = _toggleMyList;
     getFullMyList = _getFullMyList;
     fetchMyList = _fetchMyList;
+    saveToContinueWatching = _saveToContinueWatching;
+    getContinueWatching = _getContinueWatching;
 
     // Bootstrap
     document.addEventListener('DOMContentLoaded', async () => {
