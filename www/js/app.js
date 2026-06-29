@@ -1378,11 +1378,16 @@
 
     // Inicializa as opções padrão de cast se o Cast SDK carregar
     window.__onGCastApiAvailable = function(isAvailable) {
-        if (isAvailable) {
+        if (!isAvailable || typeof cast === 'undefined' || !cast.framework || typeof chrome === 'undefined' || !chrome.cast) return;
+        try {
             cast.framework.CastContext.getInstance().setOptions({
                 receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
                 autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
             });
+        } catch (e) {
+            // SDK do Google Cast pode lançar erro interno (bug conhecido) quando
+            // não há dispositivo Chromecast disponível na rede/ambiente de teste.
+            console.warn('Cast SDK indisponível neste ambiente:', e);
         }
     };
 

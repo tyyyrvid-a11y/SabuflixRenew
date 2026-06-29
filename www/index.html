@@ -8,12 +8,24 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>SabuFlix OS</title>
-    <link rel="stylesheet" href="css/style.css?v=21">
+    <link rel="stylesheet" href="css/style.css?v=22">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+    <script>
+        // Carrega o SDK do Google Cast apenas em navegadores Chromium (onde o Cast
+        // é suportado, incluindo o WebView do app). Em Firefox/Safari o SDK lança
+        // erros internos (options.whitelist) e não funciona, então é ignorado.
+        (function () {
+            if (window.chrome) {
+                var s = document.createElement('script');
+                s.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+                s.async = true;
+                document.head.appendChild(s);
+            }
+        })();
+    </script>
     <style>
         /* ── Splash / Loading Screen ── */
         .splash-screen {
@@ -523,7 +535,7 @@
     <script src="js/downloads.js?v=1"></script>
     <script src="js/api.js?v=23"></script>
     <script src="js/player.js?v=23"></script>
-    <script src="js/app.js?v=25"></script>
+    <script src="js/app.js?v=26"></script>
     <script>
         // Dismiss splash after app scripts have loaded, with a fallback timeout
         function hideSplash() {
