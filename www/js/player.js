@@ -153,10 +153,16 @@ class SabuflixPlayer {
                 : `https://fembed.sx/e/${tmdbId}/${season}-${episode}`;
         }
 
-        // server 2
+        if (server === 2) {
+            return isMovie
+                ? `https://mgeb.top/embed/${tmdbId}`
+                : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}`;
+        }
+
+        // server 3 (VidFast)
         return isMovie
-            ? `https://mgeb.top/embed/${tmdbId}`
-            : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}`;
+            ? `https://vidfast.pro/movie/${tmdbId}`
+            : `https://vidfast.pro/tv/${tmdbId}/${season}/${episode}`;
     }
 
     // ─── Public Methods ──────────────────────────────────────────────────

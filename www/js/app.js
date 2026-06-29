@@ -53,6 +53,7 @@
         DOM.episodeWrapper   = document.getElementById('episodeDropdownWrapper');
         DOM.btnPillPlayer1   = document.getElementById('btnPillPlayer1');
         DOM.btnPillPlayer2   = document.getElementById('btnPillPlayer2');
+        DOM.btnPillPlayer3   = document.getElementById('btnPillPlayer3');
         DOM.btnOpenSearch    = document.getElementById('btnOpenSearch');
         DOM.searchOverlay    = document.getElementById('searchOverlay');
         DOM.closeSearch      = document.getElementById('closeSearch');
@@ -870,6 +871,7 @@
         const rightPanel = DOM.detailsRightPanel;
         const btnPlay1   = DOM.btnPillPlayer1;
         const btnPlay2   = DOM.btnPillPlayer2;
+        const btnPlay3   = DOM.btnPillPlayer3;
 
         if (rightPanel) rightPanel.style.display = 'block';
 
@@ -894,6 +896,7 @@
 
         if (btnPlay1) btnPlay1.onclick = () => handlePlayClick(1);
         if (btnPlay2) btnPlay2.onclick = () => handlePlayClick(2);
+        if (btnPlay3) btnPlay3.onclick = () => handlePlayClick(3);
 
         const backdropEl = DOM.detailsBackdrop;
         const titleEl    = DOM.detailsTitle;
