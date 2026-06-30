@@ -447,53 +447,99 @@
 
 /* ── Search: frosted sheet + iOS segmented control ── */
 [data-theme="liquid-glass"] .search-overlay {
-    background: rgba(0,0,0,0.55);
+    background: rgba(0,0,0,0.45);
     backdrop-filter: var(--lg-blur-heavy);
     -webkit-backdrop-filter: var(--lg-blur-heavy);
+    padding: 0 20px;
 }
 
 [data-theme="liquid-glass"] .search-modal {
-    background: var(--glass-grad) !important;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%),
+        rgba(28,28,32,0.78) !important;
     backdrop-filter: var(--lg-blur-heavy) !important;
     -webkit-backdrop-filter: var(--lg-blur-heavy) !important;
-    border: var(--glass-border) !important;
+    border: 0.5px solid rgba(255,255,255,0.18) !important;
     border-radius: var(--radius-xl) !important;
+    padding: 18px !important;
     box-shadow:
-        inset 0 0.5px 0 rgba(255,255,255,0.22),
-        0 24px 60px rgba(0,0,0,0.6) !important;
+        inset 0 0.5px 0 rgba(255,255,255,0.3),
+        inset 0 -0.5px 0 rgba(255,255,255,0.04),
+        0 1px 1px rgba(0,0,0,0.3),
+        0 30px 70px rgba(0,0,0,0.65) !important;
     color: #fff !important;
 }
 
+[data-theme="liquid-glass"] .search-header {
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+}
+
+/* de-emphasize the "Buscar" caption — iOS search sheets don't label the field */
+[data-theme="liquid-glass"] .search-header > span {
+    display: none !important;
+}
+
+/* iOS-style capsule search field with a leading magnifier glyph */
 [data-theme="liquid-glass"] .search-modal input,
 [data-theme="liquid-glass"] input#searchInput {
     background: var(--lg-fill) !important;
     color: #fff !important;
     border: none !important;
-    border-radius: var(--radius-sm) !important;
+    border-radius: var(--radius-pill) !important;
+    height: 38px !important;
+    padding: 0 16px 0 38px !important;
+    font-size: 16px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a9aa3' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: 13px center !important;
+    background-size: 16px 16px !important;
+    transition: background-color var(--transition-fast) !important;
+}
+[data-theme="liquid-glass"] input#searchInput:focus {
+    background-color: var(--lg-fill-strong) !important;
 }
 [data-theme="liquid-glass"] input#searchInput::placeholder {
     color: var(--text-muted) !important;
 }
 
-/* segmented control track */
+[data-theme="liquid-glass"] .close-search {
+    background: var(--lg-fill) !important;
+    color: rgba(235,235,245,0.7) !important;
+    border-radius: 50% !important;
+}
+[data-theme="liquid-glass"] .close-search:hover {
+    background: var(--lg-fill-strong) !important;
+    color: #fff !important;
+}
+
+/* segmented control track — proper iOS UISegmentedControl proportions */
 [data-theme="liquid-glass"] .search-tabs {
     background: var(--lg-fill) !important;
-    border-radius: var(--radius-xs) !important;
-    padding: 2px !important;
-    gap: 0 !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 3px !important;
+    gap: 2px !important;
+    margin-bottom: 16px !important;
 }
 [data-theme="liquid-glass"] .search-tab {
-    color: #fff !important;
+    flex: 1 !important;
+    color: rgba(235,235,245,0.75) !important;
     background: transparent !important;
     border: none !important;
-    border-radius: 7px !important;
+    border-radius: 8px !important;
     font-weight: 500 !important;
-    transition: background var(--transition-fast) !important;
+    font-size: 13px !important;
+    padding: 7px 12px !important;
+    transition: background var(--transition-fast), color var(--transition-fast) !important;
+}
+[data-theme="liquid-glass"] .search-tab:hover:not(.active) {
+    background: rgba(255,255,255,0.06) !important;
 }
 [data-theme="liquid-glass"] .search-tab.active {
-    background: rgba(99,99,102,0.95) !important;
+    background: rgba(99,99,102,0.85) !important;
     color: #fff !important;
-    box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.25), 0 3px 8px rgba(0,0,0,0.4) !important;
+    box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.3), 0 3px 8px rgba(0,0,0,0.4) !important;
 }
 
 /* ── Details sheet ── */
