@@ -734,8 +734,8 @@ textarea:focus-visible {
     z-index: 100;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    padding-top: 10vh;
+    align-items: center;
+    padding: 20px;
     /* Smooth open/close */
     opacity: 0;
     visibility: hidden;
@@ -1518,10 +1518,6 @@ textarea:focus-visible {
 
     .details-left {
         gap: 20px;
-    }
-
-    .search-overlay {
-        padding-top: max(5vh, calc(15px + env(safe-area-inset-top, 0px)));
     }
 
     .search-modal {
