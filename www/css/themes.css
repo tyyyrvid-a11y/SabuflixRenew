@@ -1,0 +1,1129 @@
+/* ================================================
+   SABUFLIX — Theme System (v1)
+   ================================================ */
+
+/* ────────────────────────────────────────────────
+   THEME PICKER PANEL
+   ──────────────────────────────────────────────── */
+.theme-picker {
+    position: fixed;
+    bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    width: 290px;
+    background: var(--glass-bg, rgba(15,15,15,0.9));
+    backdrop-filter: blur(32px) saturate(140%);
+    -webkit-backdrop-filter: blur(32px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 16px;
+    z-index: 9000;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.theme-picker.open {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(-50%) translateY(0);
+}
+
+@media (min-width: 769px) {
+    .theme-picker {
+        bottom: auto;
+        top: 80px;
+        right: 20px;
+        left: auto;
+        transform: translateY(-10px);
+    }
+    .theme-picker.open {
+        transform: translateY(0);
+    }
+}
+
+.theme-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.theme-picker-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.theme-picker-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s, color 0.2s;
+}
+.theme-picker-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-primary);
+}
+
+.theme-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background 0.2s, border-color 0.2s;
+    text-align: left;
+}
+
+.theme-option:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.1);
+}
+
+.theme-option.active {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.25);
+}
+
+.theme-option-check {
+    margin-left: auto;
+    opacity: 0;
+    color: var(--text-primary);
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+.theme-option.active .theme-option-check {
+    opacity: 1;
+}
+
+.theme-preview {
+    width: 44px;
+    height: 32px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Theme preview swatches */
+.theme-preview--dark {
+    background: linear-gradient(135deg, #050505 40%, #1a1a1a 100%);
+}
+.theme-preview--dark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(255,255,255,0.06) 100%);
+}
+
+.theme-preview--liquid-glass {
+    background: linear-gradient(135deg, #e8f0fe 0%, #f2f2f7 50%, #fce4ec 100%);
+}
+.theme-preview--liquid-glass::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(4px);
+}
+
+.theme-preview--windows95 {
+    background: #008080;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+}
+.theme-preview--windows95::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40%;
+    background: #000080;
+}
+
+.theme-preview--frutiger-aero {
+    background: linear-gradient(180deg, #87ceeb 0%, #d6eaf8 55%, #c5e8c5 100%);
+}
+.theme-preview--frutiger-aero::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    width: 60%;
+    height: 40%;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    filter: blur(4px);
+}
+
+.theme-option-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.theme-option-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.theme-option-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* ────────────────────────────────────────────────
+   LIQUID GLASS THEME
+   Apple WWDC 2025 — frosted translucent surfaces
+   ──────────────────────────────────────────────── */
+[data-theme="liquid-glass"] {
+    --bg-color: #f2f2f7;
+    --text-primary: #1c1c1e;
+    --text-secondary: #3a3a3c;
+    --text-muted: #6c6c70;
+    --accent-color: #0071e3;
+    --card-bg: rgba(255, 255, 255, 0.65);
+    --border-color: rgba(0, 0, 0, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --nav-bg: rgba(242, 242, 247, 0.75);
+    --glass-grad: linear-gradient(135deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.45) 100%);
+    --glass-grad-hover: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.65) 100%);
+    --glass-border: 1px solid rgba(255,255,255,0.85);
+    --glass-border-hover: rgba(255,255,255,1);
+    --glass-shadow: 0 2px 20px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+    --glass-shadow-hover: 0 6px 30px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,1);
+    --focus-ring: 0 0 0 2px rgba(0,113,227,0.3), 0 0 0 4px rgba(0,113,227,0.12);
+    --focus-glow: 0 0 12px 2px rgba(0,113,227,0.2);
+}
+
+[data-theme="liquid-glass"] body {
+    background: linear-gradient(160deg, #e8f0fe 0%, #f2f2f7 45%, #fce4ec 100%);
+    background-attachment: fixed;
+}
+
+[data-theme="liquid-glass"] .top-nav {
+    background: rgba(255,255,255,0.55) !important;
+    backdrop-filter: blur(40px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+    border: 1px solid rgba(255,255,255,0.85) !important;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+
+@media (max-width: 768px) {
+    [data-theme="liquid-glass"] .top-nav {
+        background: rgba(242,242,247,0.82) !important;
+        border-top: 1px solid rgba(255,255,255,0.85) !important;
+        box-shadow: 0 -2px 20px rgba(0,0,0,0.06) !important;
+    }
+}
+
+[data-theme="liquid-glass"] .nav-item {
+    color: #1c1c1e;
+}
+
+[data-theme="liquid-glass"] .nav-item:hover {
+    color: #000;
+}
+
+[data-theme="liquid-glass"] .nav-item.active {
+    background: rgba(0,0,0,0.09) !important;
+    color: #000 !important;
+}
+
+@media (max-width: 768px) {
+    [data-theme="liquid-glass"] .nav-item.active {
+        color: #0071e3 !important;
+        background: none !important;
+    }
+    [data-theme="liquid-glass"] .nav-item {
+        color: #3a3a3c;
+    }
+}
+
+[data-theme="liquid-glass"] .hero-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(242,242,247,0.97) 0%,
+        rgba(242,242,247,0.5) 55%,
+        transparent 100%
+    );
+}
+
+[data-theme="liquid-glass"] .catalog-container,
+[data-theme="liquid-glass"] .row {
+    color: #1c1c1e;
+}
+
+[data-theme="liquid-glass"] .row-title {
+    color: #1c1c1e;
+}
+
+[data-theme="liquid-glass"] .card {
+    background: rgba(255,255,255,0.6) !important;
+    backdrop-filter: blur(20px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+    border: 1px solid rgba(255,255,255,0.85) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
+}
+
+[data-theme="liquid-glass"] .btn-primary {
+    background: #0071e3 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 15px rgba(0,113,227,0.35) !important;
+}
+
+[data-theme="liquid-glass"] .btn-primary:hover {
+    background: #0077ed !important;
+}
+
+[data-theme="liquid-glass"] .pill-btn {
+    color: #1c1c1e !important;
+    background: rgba(255,255,255,0.6) !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+
+[data-theme="liquid-glass"] .pill-btn:hover {
+    background: rgba(255,255,255,0.8) !important;
+}
+
+[data-theme="liquid-glass"] .search-overlay {
+    background: rgba(242,242,247,0.88);
+    backdrop-filter: blur(40px) saturate(160%);
+    -webkit-backdrop-filter: blur(40px) saturate(160%);
+}
+
+[data-theme="liquid-glass"] .search-modal {
+    background: rgba(255,255,255,0.75) !important;
+    border: 1px solid rgba(255,255,255,0.9) !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
+    color: #1c1c1e !important;
+}
+
+[data-theme="liquid-glass"] .search-modal input,
+[data-theme="liquid-glass"] input#searchInput {
+    background: rgba(255,255,255,0.8) !important;
+    color: #1c1c1e !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+}
+
+[data-theme="liquid-glass"] .search-tab {
+    color: #3a3a3c !important;
+}
+
+[data-theme="liquid-glass"] .search-tab.active {
+    background: rgba(0,0,0,0.09) !important;
+    color: #000 !important;
+}
+
+[data-theme="liquid-glass"] .details-immersive {
+    background: rgba(242,242,247,0.95) !important;
+    backdrop-filter: blur(30px) !important;
+    -webkit-backdrop-filter: blur(30px) !important;
+}
+
+[data-theme="liquid-glass"] .details-gradient {
+    background: linear-gradient(to top, rgba(242,242,247,1) 0%, rgba(242,242,247,0.6) 60%, transparent 100%) !important;
+}
+
+[data-theme="liquid-glass"] .details-title,
+[data-theme="liquid-glass"] .details-meta,
+[data-theme="liquid-glass"] .details-overview,
+[data-theme="liquid-glass"] .details-info-block {
+    color: #1c1c1e !important;
+}
+
+[data-theme="liquid-glass"] .media-type-badge {
+    background: rgba(0,0,0,0.08) !important;
+    color: #3a3a3c !important;
+    border-color: rgba(0,0,0,0.1) !important;
+}
+
+[data-theme="liquid-glass"] .custom-dropdown-trigger {
+    background: rgba(255,255,255,0.65) !important;
+    color: #1c1c1e !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+}
+
+[data-theme="liquid-glass"] .custom-dropdown-menu {
+    background: rgba(255,255,255,0.9) !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    color: #1c1c1e !important;
+}
+
+[data-theme="liquid-glass"] .stream-entry {
+    background: rgba(255,255,255,0.55) !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    color: #1c1c1e !important;
+}
+
+[data-theme="liquid-glass"] .stream-entry:hover {
+    background: rgba(255,255,255,0.75) !important;
+}
+
+[data-theme="liquid-glass"] .stream-entry-name,
+[data-theme="liquid-glass"] .stream-entry-desc,
+[data-theme="liquid-glass"] .streaming-label,
+[data-theme="liquid-glass"] .download-label {
+    color: #3a3a3c !important;
+}
+
+[data-theme="liquid-glass"] .stream-badge {
+    background: #0071e3 !important;
+    color: #fff !important;
+}
+
+[data-theme="liquid-glass"] .app-footer {
+    color: #6c6c70 !important;
+}
+
+[data-theme="liquid-glass"] .skeleton-row-title,
+[data-theme="liquid-glass"] .skeleton-card {
+    background: rgba(0,0,0,0.06) !important;
+}
+
+[data-theme="liquid-glass"] .theme-picker {
+    background: rgba(255,255,255,0.75) !important;
+    border: 1px solid rgba(255,255,255,0.95) !important;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
+}
+
+[data-theme="liquid-glass"] .theme-picker-title {
+    color: #3a3a3c !important;
+}
+
+[data-theme="liquid-glass"] .theme-picker-close {
+    color: #6c6c70 !important;
+}
+
+[data-theme="liquid-glass"] .theme-option:hover {
+    background: rgba(0,0,0,0.06) !important;
+    border-color: rgba(0,0,0,0.08) !important;
+}
+
+[data-theme="liquid-glass"] .theme-option.active {
+    background: rgba(0,0,0,0.09) !important;
+    border-color: rgba(0,0,0,0.15) !important;
+}
+
+[data-theme="liquid-glass"] .theme-option-label {
+    color: #1c1c1e !important;
+}
+
+[data-theme="liquid-glass"] .theme-option-desc {
+    color: #6c6c70 !important;
+}
+
+[data-theme="liquid-glass"] .theme-option-check {
+    color: #0071e3 !important;
+}
+
+/* ────────────────────────────────────────────────
+   WINDOWS 95 THEME
+   Classic Microsoft UI — beveled, gray, pixelated
+   ──────────────────────────────────────────────── */
+[data-theme="windows95"] {
+    --bg-color: #c0c0c0;
+    --text-primary: #000000;
+    --text-secondary: #222222;
+    --text-muted: #555555;
+    --accent-color: #000080;
+    --card-bg: #d4d0c8;
+    --border-color: #808080;
+    --glass-bg: #d4d0c8;
+    --nav-bg: #c0c0c0;
+    --glass-grad: linear-gradient(180deg, #e8e4dc 0%, #d4d0c8 100%);
+    --glass-grad-hover: linear-gradient(180deg, #f0ece4 0%, #e0dcd4 100%);
+    --glass-border: 2px solid #808080;
+    --glass-border-hover: #606060;
+    --glass-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #ffffff;
+    --glass-shadow-hover: inset -1px -1px 0 #606060, inset 1px 1px 0 #ffffff;
+    --radius-xs: 0px;
+    --radius-sm: 0px;
+    --radius-md: 0px;
+    --radius-lg: 0px;
+    --radius-xl: 0px;
+    --radius-pill: 0px;
+    --focus-ring: 1px dotted #000000;
+    --focus-glow: none;
+    --transition-fast: 0.05s linear;
+    --transition-base: 0.05s linear;
+    --transition-slow: 0.1s linear;
+}
+
+[data-theme="windows95"] body {
+    background: #008080;
+    font-family: 'Courier New', 'Lucida Console', 'MS Sans Serif', monospace !important;
+}
+
+[data-theme="windows95"] *:not(img):not(video):not(iframe) {
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    animation-duration: 0.05s !important;
+}
+
+/* Nav — full-width title bar at top */
+[data-theme="windows95"] .top-nav {
+    top: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    background: #c0c0c0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-bottom: 2px solid #808080 !important;
+    box-shadow: inset 0 1px 0 #ffffff, 0 2px 0 #404040 !important;
+    padding: 4px 8px !important;
+    gap: 4px !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+}
+
+[data-theme="windows95"] .main-content {
+    padding-top: 50px !important;
+    padding-bottom: 0 !important;
+}
+
+[data-theme="windows95"] .nav-links {
+    gap: 2px !important;
+    width: auto !important;
+    flex-direction: row !important;
+}
+
+[data-theme="windows95"] .nav-item {
+    color: #000 !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    padding: 3px 10px !important;
+    border-radius: 0 !important;
+    background: #c0c0c0 !important;
+    border: 2px solid transparent !important;
+    flex-direction: row !important;
+    width: auto !important;
+    height: auto !important;
+    gap: 6px !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+[data-theme="windows95"] .nav-item:hover {
+    background: #000080 !important;
+    color: #fff !important;
+    transform: none !important;
+    border-color: transparent !important;
+}
+
+[data-theme="windows95"] .nav-item.active {
+    background: #000080 !important;
+    color: #fff !important;
+    border: 2px solid #000080 !important;
+    box-shadow: inset 1px 1px 0 #404040 !important;
+}
+
+[data-theme="windows95"] .nav-icon {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+[data-theme="windows95"] .nav-text {
+    font-size: 12px !important;
+}
+
+/* Hero */
+[data-theme="windows95"] .hero-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(192,192,192,0.97) 0%,
+        rgba(192,192,192,0.6) 50%,
+        transparent 100%
+    ) !important;
+}
+
+[data-theme="windows95"] .hero-title {
+    font-family: 'Courier New', monospace !important;
+    text-shadow: 2px 2px 0 #000080 !important;
+    letter-spacing: 0 !important;
+}
+
+[data-theme="windows95"] .hero-meta {
+    color: #000 !important;
+}
+
+/* Buttons */
+[data-theme="windows95"] .btn-primary,
+[data-theme="windows95"] .pill-btn {
+    background: #d4d0c8 !important;
+    color: #000 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #808080 #808080 #ffffff !important;
+    box-shadow: none !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: bold !important;
+    border-radius: 0 !important;
+    text-shadow: none !important;
+    transition: none !important;
+}
+
+[data-theme="windows95"] .btn-primary:hover,
+[data-theme="windows95"] .pill-btn:hover {
+    background: #e0dcd4 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+[data-theme="windows95"] .btn-primary:active,
+[data-theme="windows95"] .pill-btn:active {
+    border-color: #808080 #ffffff #ffffff #808080 !important;
+    transform: translate(1px, 1px) !important;
+}
+
+/* Cards */
+[data-theme="windows95"] .card,
+[data-theme="windows95"] .media-card {
+    background: #d4d0c8 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #808080 #808080 #ffffff !important;
+    box-shadow: none !important;
+}
+
+/* Search */
+[data-theme="windows95"] .search-overlay {
+    background: rgba(0,0,128,0.88) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+[data-theme="windows95"] .search-modal {
+    background: #d4d0c8 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #808080 #808080 #ffffff !important;
+    box-shadow: 4px 4px 0 #404040 !important;
+    color: #000 !important;
+    border-radius: 0 !important;
+}
+
+[data-theme="windows95"] input,
+[data-theme="windows95"] .search-modal input {
+    background: #fff !important;
+    color: #000 !important;
+    border: 2px solid !important;
+    border-color: #808080 #ffffff #ffffff #808080 !important;
+    font-family: 'Courier New', monospace !important;
+    border-radius: 0 !important;
+}
+
+[data-theme="windows95"] .search-tab {
+    background: #c0c0c0 !important;
+    color: #000 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #808080 #808080 #ffffff !important;
+    border-radius: 0 !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+[data-theme="windows95"] .search-tab.active {
+    border-color: #808080 #ffffff #ffffff #808080 !important;
+    background: #d4d0c8 !important;
+}
+
+/* Details */
+[data-theme="windows95"] .details-immersive {
+    background: #c0c0c0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+[data-theme="windows95"] .details-gradient {
+    background: none !important;
+}
+
+[data-theme="windows95"] .details-title,
+[data-theme="windows95"] .details-meta,
+[data-theme="windows95"] .details-overview {
+    font-family: 'Courier New', monospace !important;
+    color: #000 !important;
+}
+
+[data-theme="windows95"] .media-type-badge {
+    background: #000080 !important;
+    color: #fff !important;
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+[data-theme="windows95"] .stream-entry,
+[data-theme="windows95"] .custom-dropdown-trigger {
+    background: #d4d0c8 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #808080 #808080 #ffffff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+[data-theme="windows95"] .stream-entry:hover {
+    background: #e0dcd4 !important;
+}
+
+[data-theme="windows95"] .custom-dropdown-menu {
+    background: #fff !important;
+    border: 2px solid #808080 !important;
+    border-radius: 0 !important;
+    box-shadow: 2px 2px 0 #404040 !important;
+    color: #000 !important;
+}
+
+[data-theme="windows95"] .stream-badge {
+    background: #000080 !important;
+    color: #fff !important;
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+}
+
+[data-theme="windows95"] .streaming-label,
+[data-theme="windows95"] .download-label,
+[data-theme="windows95"] .stream-entry-name,
+[data-theme="windows95"] .stream-entry-desc {
+    color: #000 !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+[data-theme="windows95"] .row-title {
+    font-family: 'Courier New', monospace !important;
+    color: #000 !important;
+}
+
+[data-theme="windows95"] .app-footer {
+    background: #c0c0c0 !important;
+    border-top: 2px solid !important;
+    border-color: #808080 #ffffff #ffffff #808080 !important;
+    color: #000 !important;
+}
+
+/* Skeleton in Windows 95 */
+[data-theme="windows95"] .skeleton-row-title,
+[data-theme="windows95"] .skeleton-card {
+    background: #b8b4ac !important;
+    border: 1px solid #808080 !important;
+    animation: none !important;
+    border-radius: 0 !important;
+}
+
+/* Theme picker Win95 style */
+[data-theme="windows95"] .theme-picker {
+    background: #d4d0c8 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #808080 #808080 #ffffff !important;
+    box-shadow: 4px 4px 0 #404040 !important;
+    backdrop-filter: none !important;
+    border-radius: 0 !important;
+}
+
+[data-theme="windows95"] .theme-picker-title {
+    color: #fff !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 12px !important;
+}
+
+[data-theme="windows95"] .theme-picker-header {
+    background: #000080;
+    margin: -16px -16px 14px -16px;
+    padding: 4px 8px;
+    color: #fff;
+}
+
+[data-theme="windows95"] .theme-picker-close {
+    color: #fff !important;
+    background: #c0c0c0 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #808080 #808080 #ffffff !important;
+    border-radius: 0 !important;
+    width: 18px !important;
+    height: 18px !important;
+}
+
+[data-theme="windows95"] .theme-option {
+    background: #c0c0c0 !important;
+    border: 2px solid !important;
+    border-color: #ffffff #808080 #808080 #ffffff !important;
+    border-radius: 0 !important;
+    color: #000 !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+[data-theme="windows95"] .theme-option:hover {
+    background: #000080 !important;
+    border-color: #000 !important;
+}
+
+[data-theme="windows95"] .theme-option:hover .theme-option-label,
+[data-theme="windows95"] .theme-option:hover .theme-option-desc {
+    color: #fff !important;
+}
+
+[data-theme="windows95"] .theme-option.active {
+    background: #e0dcd4 !important;
+    border-color: #808080 #ffffff #ffffff #808080 !important;
+}
+
+[data-theme="windows95"] .theme-option-label {
+    color: #000 !important;
+}
+
+[data-theme="windows95"] .theme-option-desc {
+    color: #444 !important;
+}
+
+/* ────────────────────────────────────────────────
+   FRUTIGER AERO THEME
+   Early 2010s glossy web — sky, glass bubbles, lush
+   ──────────────────────────────────────────────── */
+[data-theme="frutiger-aero"] {
+    --bg-color: #d6eaf8;
+    --text-primary: #0d2137;
+    --text-secondary: #1a5276;
+    --text-muted: #5b8db8;
+    --accent-color: #0a84c8;
+    --card-bg: rgba(255, 255, 255, 0.6);
+    --border-color: rgba(80, 160, 220, 0.35);
+    --glass-bg: rgba(200, 235, 255, 0.5);
+    --nav-bg: rgba(180, 220, 245, 0.78);
+    --glass-grad: linear-gradient(160deg, rgba(255,255,255,0.72) 0%, rgba(170,220,255,0.45) 100%);
+    --glass-grad-hover: linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(170,220,255,0.65) 100%);
+    --glass-border: 1px solid rgba(100,190,240,0.55);
+    --glass-border-hover: rgba(60,170,230,0.85);
+    --glass-shadow: 0 4px 20px rgba(0,80,180,0.14), inset 0 1px 0 rgba(255,255,255,0.85);
+    --glass-shadow-hover: 0 8px 30px rgba(0,80,180,0.22), inset 0 1px 0 rgba(255,255,255,1);
+    --focus-ring: 0 0 0 2px rgba(10,132,200,0.35), 0 0 0 4px rgba(10,132,200,0.15);
+    --focus-glow: 0 0 16px 3px rgba(10,132,200,0.3);
+}
+
+[data-theme="frutiger-aero"] body {
+    background: linear-gradient(180deg,
+        #87ceeb 0%,
+        #b8dfee 25%,
+        #d6eaf8 55%,
+        #e8f5ff 75%,
+        #c5e8c5 100%
+    );
+    background-attachment: fixed;
+}
+
+[data-theme="frutiger-aero"] .top-nav {
+    background: linear-gradient(180deg,
+        rgba(210,240,255,0.88) 0%,
+        rgba(160,215,245,0.78) 100%
+    ) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 1px solid rgba(120,200,245,0.65) !important;
+    box-shadow:
+        0 2px 16px rgba(0,80,180,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.75) !important;
+}
+
+@media (max-width: 768px) {
+    [data-theme="frutiger-aero"] .top-nav {
+        background: linear-gradient(0deg,
+            rgba(160,215,245,0.92) 0%,
+            rgba(210,240,255,0.88) 100%
+        ) !important;
+        border-top: 1px solid rgba(150,210,250,0.65) !important;
+        box-shadow: 0 -2px 16px rgba(0,80,180,0.1) !important;
+    }
+    [data-theme="frutiger-aero"] .nav-item {
+        color: #1a5276 !important;
+    }
+    [data-theme="frutiger-aero"] .nav-item.active {
+        color: #0a84c8 !important;
+        background: none !important;
+    }
+}
+
+[data-theme="frutiger-aero"] .nav-item {
+    color: #0d3055;
+}
+
+[data-theme="frutiger-aero"] .nav-item:hover {
+    color: #0a4a8c;
+}
+
+[data-theme="frutiger-aero"] .nav-item.active {
+    background: linear-gradient(180deg,
+        rgba(255,255,255,0.88) 0%,
+        rgba(170,225,255,0.72) 100%
+    ) !important;
+    color: #0a5fa8 !important;
+    border: 1px solid rgba(100,185,240,0.55) !important;
+    box-shadow: 0 2px 8px rgba(0,80,200,0.18), inset 0 1px 0 rgba(255,255,255,0.95) !important;
+}
+
+[data-theme="frutiger-aero"] .hero-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(214,234,248,0.97) 0%,
+        rgba(180,220,255,0.5) 55%,
+        transparent 100%
+    ) !important;
+}
+
+[data-theme="frutiger-aero"] .hero-title {
+    color: #fff;
+    text-shadow: 0 2px 20px rgba(0,60,140,0.55), 0 0 40px rgba(0,100,200,0.25);
+}
+
+[data-theme="frutiger-aero"] .hero-meta {
+    color: #1a5276;
+}
+
+[data-theme="frutiger-aero"] .row-title {
+    color: #0d2137;
+}
+
+[data-theme="frutiger-aero"] .btn-primary {
+    background: linear-gradient(180deg,
+        #3ecaff 0%,
+        #0a84c8 50%,
+        #005a99 100%
+    ) !important;
+    color: #fff !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    box-shadow:
+        0 4px 18px rgba(0,100,200,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.5) !important;
+}
+
+[data-theme="frutiger-aero"] .btn-primary:hover {
+    background: linear-gradient(180deg,
+        #55d2ff 0%,
+        #1a94d8 50%,
+        #1572b0 100%
+    ) !important;
+}
+
+[data-theme="frutiger-aero"] .pill-btn {
+    background: linear-gradient(180deg,
+        rgba(255,255,255,0.8) 0%,
+        rgba(170,225,255,0.6) 100%
+    ) !important;
+    color: #0a4f8c !important;
+    border: 1px solid rgba(100,195,245,0.6) !important;
+    box-shadow:
+        0 2px 10px rgba(0,80,200,0.12),
+        inset 0 1px 0 rgba(255,255,255,0.95) !important;
+}
+
+[data-theme="frutiger-aero"] .pill-btn:hover {
+    background: linear-gradient(180deg,
+        rgba(255,255,255,0.95) 0%,
+        rgba(190,235,255,0.75) 100%
+    ) !important;
+}
+
+[data-theme="frutiger-aero"] .card,
+[data-theme="frutiger-aero"] .media-card {
+    background: linear-gradient(160deg,
+        rgba(255,255,255,0.72) 0%,
+        rgba(195,235,255,0.5) 100%
+    ) !important;
+    backdrop-filter: blur(12px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+    border: 1px solid rgba(130,205,250,0.5) !important;
+    box-shadow:
+        0 4px 20px rgba(0,80,180,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.75) !important;
+}
+
+[data-theme="frutiger-aero"] .search-overlay {
+    background: rgba(180,225,255,0.9) !important;
+    backdrop-filter: blur(30px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+}
+
+[data-theme="frutiger-aero"] .search-modal {
+    background: linear-gradient(160deg,
+        rgba(255,255,255,0.85) 0%,
+        rgba(200,238,255,0.75) 100%
+    ) !important;
+    border: 1px solid rgba(120,205,250,0.6) !important;
+    box-shadow: 0 20px 50px rgba(0,80,200,0.18) !important;
+    color: #0d2137 !important;
+}
+
+[data-theme="frutiger-aero"] .search-modal input,
+[data-theme="frutiger-aero"] input#searchInput {
+    background: rgba(255,255,255,0.88) !important;
+    color: #0d2137 !important;
+    border: 1px solid rgba(100,185,240,0.5) !important;
+}
+
+[data-theme="frutiger-aero"] .search-tab {
+    color: #1a5276 !important;
+}
+
+[data-theme="frutiger-aero"] .search-tab.active {
+    background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(180,225,255,0.65) 100%) !important;
+    color: #0a4f8c !important;
+    border-color: rgba(100,190,240,0.55) !important;
+}
+
+[data-theme="frutiger-aero"] .details-immersive {
+    background: linear-gradient(160deg,
+        rgba(210,240,255,0.97) 0%,
+        rgba(220,245,255,0.97) 100%
+    ) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+[data-theme="frutiger-aero"] .details-gradient {
+    background: linear-gradient(
+        to top,
+        rgba(214,234,248,1) 0%,
+        rgba(200,232,255,0.6) 60%,
+        transparent 100%
+    ) !important;
+}
+
+[data-theme="frutiger-aero"] .details-title,
+[data-theme="frutiger-aero"] .details-overview {
+    color: #0d2137 !important;
+}
+
+[data-theme="frutiger-aero"] .details-meta {
+    color: #1a5276 !important;
+}
+
+[data-theme="frutiger-aero"] .media-type-badge {
+    background: rgba(10,132,200,0.15) !important;
+    color: #0a4f8c !important;
+    border-color: rgba(10,132,200,0.3) !important;
+}
+
+[data-theme="frutiger-aero"] .custom-dropdown-trigger {
+    background: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(180,225,255,0.58) 100%) !important;
+    color: #0d2137 !important;
+    border: 1px solid rgba(100,190,240,0.5) !important;
+}
+
+[data-theme="frutiger-aero"] .custom-dropdown-menu {
+    background: rgba(240,252,255,0.95) !important;
+    border: 1px solid rgba(100,190,240,0.5) !important;
+    color: #0d2137 !important;
+    box-shadow: 0 10px 30px rgba(0,80,200,0.18) !important;
+}
+
+[data-theme="frutiger-aero"] .stream-entry {
+    background: linear-gradient(160deg,
+        rgba(255,255,255,0.65) 0%,
+        rgba(195,235,255,0.5) 100%
+    ) !important;
+    border: 1px solid rgba(120,200,245,0.5) !important;
+    color: #0d2137 !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8) !important;
+}
+
+[data-theme="frutiger-aero"] .stream-entry:hover {
+    background: linear-gradient(160deg,
+        rgba(255,255,255,0.82) 0%,
+        rgba(210,240,255,0.65) 100%
+    ) !important;
+}
+
+[data-theme="frutiger-aero"] .stream-entry-name,
+[data-theme="frutiger-aero"] .streaming-label,
+[data-theme="frutiger-aero"] .download-label {
+    color: #0d2137 !important;
+}
+
+[data-theme="frutiger-aero"] .stream-entry-desc {
+    color: #1a5276 !important;
+}
+
+[data-theme="frutiger-aero"] .stream-badge {
+    background: linear-gradient(180deg, #4dd2f8 0%, #0a84c8 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 1px 5px rgba(0,80,200,0.3) !important;
+}
+
+[data-theme="frutiger-aero"] .app-footer {
+    color: #1a5276 !important;
+}
+
+[data-theme="frutiger-aero"] .skeleton-row-title,
+[data-theme="frutiger-aero"] .skeleton-card {
+    background: rgba(0,80,180,0.07) !important;
+}
+
+[data-theme="frutiger-aero"] .theme-picker {
+    background: linear-gradient(160deg,
+        rgba(255,255,255,0.82) 0%,
+        rgba(200,238,255,0.78) 100%
+    ) !important;
+    border: 1px solid rgba(120,205,250,0.6) !important;
+    box-shadow: 0 20px 50px rgba(0,80,200,0.18) !important;
+}
+
+[data-theme="frutiger-aero"] .theme-picker-title {
+    color: #1a5276 !important;
+}
+
+[data-theme="frutiger-aero"] .theme-picker-close {
+    color: #5b8db8 !important;
+}
+
+[data-theme="frutiger-aero"] .theme-option:hover {
+    background: rgba(0,80,200,0.07) !important;
+    border-color: rgba(100,190,240,0.4) !important;
+}
+
+[data-theme="frutiger-aero"] .theme-option.active {
+    background: rgba(0,80,200,0.1) !important;
+    border-color: rgba(100,190,240,0.6) !important;
+}
+
+[data-theme="frutiger-aero"] .theme-option-label {
+    color: #0d2137 !important;
+}
+
+[data-theme="frutiger-aero"] .theme-option-desc {
+    color: #5b8db8 !important;
+}
+
+[data-theme="frutiger-aero"] .theme-option-check {
+    color: #0a84c8 !important;
+}
