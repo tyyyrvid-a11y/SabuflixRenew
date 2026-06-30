@@ -360,7 +360,7 @@
                 <div class="hero-buttons">
                     <button class="btn-primary" id="heroPlay" aria-label="Play"><i data-lucide="play" class="icon-fill"></i> Assistir</button>
                     <button class="pill-btn" id="heroBtnMyList" aria-label="Add to My List"><i data-lucide="plus"></i> Minha Lista</button>
-                    <button class="pill-btn" aria-label="More info"><i data-lucide="info"></i> Detalhes</button>
+                    <button class="pill-btn" id="heroDetails" aria-label="More info"><i data-lucide="info"></i> Detalhes</button>
                 </div>
             </div>
         </section>
@@ -432,14 +432,72 @@
     <div class="search-overlay" id="searchOverlay">
         <div class="search-modal">
             <div class="search-header">
-                <span style="font-weight: bold; margin-right: 10px; color: var(--text-secondary);">Buscar</span>
-                <input type="text" id="searchInput" placeholder="Search..." aria-label="Search movies and TV shows">
+                <div class="search-mode-toggle">
+                    <button class="search-mode-btn active" id="btnModeNormal"><i data-lucide="search"></i> Buscar</button>
+                    <button class="search-mode-btn" id="btnModeSmart"><i data-lucide="sparkles"></i> Descobrir</button>
+                </div>
+                <input type="text" id="searchInput" placeholder="Buscar filmes e séries..." aria-label="Search movies and TV shows">
                 <button class="close-search" id="closeSearch" aria-label="Close search"><i data-lucide="x"></i></button>
             </div>
-            <div class="search-tabs">
+            <!-- Normal mode: type filter tabs -->
+            <div class="search-tabs" id="searchTabsRow">
                 <button class="search-tab active">Movies &amp; TV</button>
                 <button class="search-tab">Movie</button>
                 <button class="search-tab">TV</button>
+            </div>
+            <!-- Smart mode: discovery panel -->
+            <div class="smart-panel" id="smartSearchPanel">
+                <div class="smart-section">
+                    <p class="smart-label">Como você tá se sentindo?</p>
+                    <div class="smart-chips" id="smartMoodChips">
+                        <button class="smart-chip mood-chip" data-mood="animado">🎉 Animado</button>
+                        <button class="smart-chip mood-chip" data-mood="relaxado">😌 Relaxado</button>
+                        <button class="smart-chip mood-chip" data-mood="sentimental">😢 Sentimental</button>
+                        <button class="smart-chip mood-chip" data-mood="curioso">🧠 Curioso</button>
+                        <button class="smart-chip mood-chip" data-mood="medo">😱 Com medo</button>
+                        <button class="smart-chip mood-chip" data-mood="rir">😂 Para rir</button>
+                        <button class="smart-chip mood-chip" data-mood="suspense">🤯 Suspense</button>
+                        <button class="smart-chip mood-chip" data-mood="epico">🔥 Épico</button>
+                    </div>
+                </div>
+                <div class="smart-section">
+                    <p class="smart-label">Gênero <span class="smart-label-hint">(opcional)</span></p>
+                    <div class="smart-chips">
+                        <button class="smart-chip genre-chip" data-movie-genre="28" data-tv-genre="10759">Ação</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="35" data-tv-genre="35">Comédia</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="18" data-tv-genre="18">Drama</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="27" data-tv-genre="9648">Terror</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="878" data-tv-genre="10765">Sci-Fi</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="10749" data-tv-genre="18">Romance</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="16" data-tv-genre="16">Animação</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="99" data-tv-genre="99">Documentário</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="80" data-tv-genre="80">Crime</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="9648" data-tv-genre="9648">Mistério</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="10751" data-tv-genre="10751">Família</button>
+                        <button class="smart-chip genre-chip" data-movie-genre="12" data-tv-genre="10759">Aventura</button>
+                    </div>
+                </div>
+                <div class="smart-filters">
+                    <div class="smart-filter-group">
+                        <p class="smart-label">Tipo</p>
+                        <div class="smart-chips">
+                            <button class="smart-chip filter-chip active" data-filter="type" data-value="all">Tudo</button>
+                            <button class="smart-chip filter-chip" data-filter="type" data-value="movie">Filmes</button>
+                            <button class="smart-chip filter-chip" data-filter="type" data-value="tv">Séries</button>
+                        </div>
+                    </div>
+                    <div class="smart-filter-group">
+                        <p class="smart-label">Nota mínima</p>
+                        <div class="smart-chips">
+                            <button class="smart-chip filter-chip active" data-filter="rating" data-value="0">Qualquer</button>
+                            <button class="smart-chip filter-chip" data-filter="rating" data-value="7">7+</button>
+                            <button class="smart-chip filter-chip" data-filter="rating" data-value="8">8+</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="smart-discover-btn" id="btnSmartDiscover">
+                    <i data-lucide="sparkles"></i> Descobrir agora
+                </button>
             </div>
             <div class="search-results" id="searchResults"></div>
         </div>

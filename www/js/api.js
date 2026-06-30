@@ -329,6 +329,24 @@ const API = {
             console.error('Erro geral de addons:', error);
             return [];
         }
+    },
+
+    /**
+     * Discover movies or TV shows by genre, rating, and sort order.
+     * @param {object} opts
+     * @param {'movie'|'tv'} [opts.type='movie']
+     * @param {number[]}     [opts.genres=[]]       TMDB genre IDs (OR logic)
+     * @param {number}       [opts.minRating=0]      Minimum vote_average
+     * @param {string}       [opts.sort='popularity.desc']
+     * @param {number}       [opts.page=1]
+     * @returns {Promise<{results: any[]}>}
+     */
+    async discover({ type = 'movie', genres = [], minRating = 0, sort = 'popularity.desc', page = 1 } = {}) {
+        const t = _normalizeType(type);
+        let url = `${TMDB_BASE_URL}/discover/${t}?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=${sort}&page=${page}`;
+        if (genres.length) url += `&with_genres=${genres.join(',')}`;
+        if (minRating > 0) url += `&vote_average.gte=${minRating}&vote_count.gte=150`;
+        return _tmdbFetch(url);
     }
 };
 

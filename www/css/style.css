@@ -1770,3 +1770,199 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
     .catalog-row { animation: none; }
 }
+
+/* ================================================
+   SMART SEARCH (Descobrir)
+   ================================================ */
+
+/* Mode toggle in search header */
+.search-mode-toggle {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 3px;
+    flex-shrink: 0;
+}
+.search-mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    padding: 6px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+.search-mode-btn i { width: 14px; height: 14px; }
+.search-mode-btn.active {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+.search-mode-btn:not(.active):hover {
+    color: var(--text-secondary);
+}
+
+/* Smart panel container */
+.smart-panel {
+    display: none;
+    padding-bottom: 4px;
+}
+
+/* Section headings */
+.smart-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 10px 0;
+}
+.smart-label-hint {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    opacity: 0.7;
+}
+.smart-section {
+    margin-bottom: 18px;
+}
+
+/* Chip rows */
+.smart-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.smart-chip {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.15s;
+    user-select: none;
+}
+.smart-chip:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    transform: translateY(-1px);
+}
+.smart-chip.active {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.4);
+    color: #fff;
+}
+.mood-chip.active {
+    background: rgba(99,102,241,0.25);
+    border-color: rgba(99,102,241,0.6);
+    color: #a5b4fc;
+}
+
+/* Filter row (type + rating side by side) */
+.smart-filters {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.smart-filter-group { flex-shrink: 0; }
+
+/* Discover button */
+.smart-discover-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.8), rgba(139,92,246,0.8));
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    margin-bottom: 6px;
+}
+.smart-discover-btn i { width: 16px; height: 16px; }
+.smart-discover-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.smart-discover-btn:active { transform: translateY(0); }
+
+/* Smart results — grid layout */
+.search-results.smart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 12px;
+    flex-direction: unset;
+    max-height: 55vh;
+}
+.smart-result-card {
+    cursor: pointer;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.smart-result-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.smart-card-poster {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(255,255,255,0.04);
+}
+.smart-card-info {
+    padding: 7px 8px;
+}
+.smart-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.smart-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.smart-card-rating { color: #fbbf24; }
+
+/* Loading state */
+.smart-loading {
+    color: var(--text-muted);
+    padding: 16px 0;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    .search-mode-toggle { gap: 2px; }
+    .search-mode-btn { padding: 5px 10px; font-size: 12px; }
+    .smart-filters { gap: 14px; }
+    .search-results.smart-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 8px;
+    }
+}

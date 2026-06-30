@@ -32,6 +32,7 @@
         DOM.heroOverview     = document.getElementById('heroOverview');
         DOM.heroPlay         = document.getElementById('heroPlay');
         DOM.heroBtnMyList    = document.getElementById('heroBtnMyList');
+        DOM.heroDetails      = document.getElementById('heroDetails');
         DOM.detailsModal     = document.getElementById('detailsModal');
         DOM.detailsBackdrop  = document.getElementById('detailsBackdrop');
         DOM.detailsTitle     = document.getElementById('detailsTitle');
@@ -301,6 +302,10 @@
         overview.textContent = item.overview;
 
         playBtn.onclick = () => openDetails(item.id, type);
+
+        if (DOM.heroDetails) {
+            DOM.heroDetails.onclick = () => openDetails(item.id, type);
+        }
 
         // ── My List button ──
         const checkHeroList = () => {
@@ -854,6 +859,182 @@
                 }
             }, 400);
         });
+
+        // ── Smart Search (Descobrir) ──────────────────────────────────
+        const btnNormal  = document.getElementById('btnModeNormal');
+        const btnSmart   = document.getElementById('btnModeSmart');
+        const tabsRow    = document.getElementById('searchTabsRow');
+        const smartPanel = document.getElementById('smartSearchPanel');
+        const btnDiscover = document.getElementById('btnSmartDiscover');
+        if (!btnNormal || !btnSmart || !smartPanel) return;
+
+        const MOOD_MAP = {
+            animado:     { movie: [28, 12],        tv: [10759],        sort: 'popularity.desc' },
+            relaxado:    { movie: [35, 10751],      tv: [35, 10751],    sort: 'popularity.desc' },
+            sentimental: { movie: [18, 10749],      tv: [18],           sort: 'vote_average.desc' },
+            curioso:     { movie: [99, 9648],       tv: [99, 9648],     sort: 'vote_average.desc' },
+            medo:        { movie: [27, 53],         tv: [9648],         sort: 'vote_average.desc' },
+            rir:         { movie: [35],             tv: [35],           sort: 'popularity.desc' },
+            suspense:    { movie: [53, 80, 9648],   tv: [80, 9648],     sort: 'vote_average.desc' },
+            epico:       { movie: [878, 14, 28],    tv: [10765, 10759], sort: 'vote_average.desc' },
+        };
+
+        let smartState = { mood: null, genres: new Set(), type: 'all', rating: 0 };
+
+        function _activateNormalMode() {
+            btnNormal.classList.add('active');
+            btnSmart.classList.remove('active');
+            input.style.display = '';
+            tabsRow.style.display = '';
+            smartPanel.style.display = 'none';
+            results.classList.remove('smart-grid');
+            results.innerHTML = '';
+            input.focus();
+        }
+
+        function _activateSmartMode() {
+            btnSmart.classList.add('active');
+            btnNormal.classList.remove('active');
+            input.style.display = 'none';
+            tabsRow.style.display = 'none';
+            smartPanel.style.display = 'block';
+            results.classList.remove('smart-grid');
+            results.innerHTML = '';
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        btnNormal.addEventListener('click', _activateNormalMode);
+        btnSmart.addEventListener('click', _activateSmartMode);
+
+        // Mood chips — single select
+        smartPanel.querySelectorAll('.mood-chip').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mood = btn.dataset.mood;
+                if (smartState.mood === mood) {
+                    smartState.mood = null;
+                    btn.classList.remove('active');
+                } else {
+                    smartPanel.querySelectorAll('.mood-chip').forEach((b) => b.classList.remove('active'));
+                    smartState.mood = mood;
+                    btn.classList.add('active');
+                }
+            });
+        });
+
+        // Genre chips — multi select
+        smartPanel.querySelectorAll('.genre-chip').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const key = `${btn.dataset.movieGenre}:${btn.dataset.tvGenre}`;
+                if (btn.classList.contains('active')) {
+                    btn.classList.remove('active');
+                    smartState.genres.delete(key);
+                } else {
+                    btn.classList.add('active');
+                    smartState.genres.add(key);
+                }
+            });
+        });
+
+        // Filter chips — single select per group (type / rating)
+        smartPanel.querySelectorAll('.filter-chip').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const group = btn.dataset.filter;
+                smartPanel.querySelectorAll(`.filter-chip[data-filter="${group}"]`).forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (group === 'type')   smartState.type   = btn.dataset.value;
+                if (group === 'rating') smartState.rating = Number(btn.dataset.value);
+            });
+        });
+
+        // Discover button
+        if (btnDiscover) {
+            btnDiscover.addEventListener('click', async () => {
+                results.innerHTML = '<div class="smart-loading">Descobrindo para você...</div>';
+
+                const types = smartState.type === 'all'   ? ['movie', 'tv']
+                            : smartState.type === 'movie'  ? ['movie']
+                            : ['tv'];
+
+                const sort = (smartState.mood && MOOD_MAP[smartState.mood])
+                    ? MOOD_MAP[smartState.mood].sort
+                    : 'popularity.desc';
+
+                const getGenreList = (t) => {
+                    const g = [];
+                    if (smartState.mood && MOOD_MAP[smartState.mood]) {
+                        g.push(...(t === 'movie' ? MOOD_MAP[smartState.mood].movie : MOOD_MAP[smartState.mood].tv));
+                    }
+                    smartState.genres.forEach((key) => {
+                        const [mG, tG] = key.split(':');
+                        if (t === 'movie' && mG) g.push(Number(mG));
+                        if (t === 'tv'    && tG) g.push(Number(tG));
+                    });
+                    return [...new Set(g)];
+                };
+
+                try {
+                    const fetches = types.map((t) =>
+                        API.discover({ type: t, genres: getGenreList(t), minRating: smartState.rating, sort })
+                            .then((res) => res.results.map((item) => ({ ...item, _type: t })))
+                    );
+
+                    let all = (await Promise.all(fetches)).flat().filter((i) => i.poster_path);
+
+                    // Interleave movies and series when type=all
+                    if (smartState.type === 'all') {
+                        const movies = all.filter((i) => i._type === 'movie');
+                        const tvs    = all.filter((i) => i._type === 'tv');
+                        all = [];
+                        const len = Math.max(movies.length, tvs.length);
+                        for (let i = 0; i < len; i++) {
+                            if (movies[i]) all.push(movies[i]);
+                            if (tvs[i])    all.push(tvs[i]);
+                        }
+                    }
+
+                    results.innerHTML = '';
+
+                    if (!all.length) {
+                        results.innerHTML = '<div style="color:var(--text-muted);padding:16px 0;">Nenhum resultado. Tente outros filtros!</div>';
+                        return;
+                    }
+
+                    results.classList.add('smart-grid');
+                    const frag = document.createDocumentFragment();
+                    all.forEach((item) => {
+                        const title  = item.title || item.name;
+                        const year   = (item.release_date || item.first_air_date || '').split('-')[0];
+                        const rating = item.vote_average ? item.vote_average.toFixed(1) : '';
+                        const card   = document.createElement('div');
+                        card.className = 'smart-result-card';
+                        card.innerHTML = `
+                            <div class="smart-card-poster" style="background-image:url('${IMG_BASE}${item.poster_path}')"></div>
+                            <div class="smart-card-info">
+                                <p class="smart-card-title">${title}</p>
+                                <div class="smart-card-meta">
+                                    ${year ? `<span>${year}</span>` : ''}
+                                    ${rating ? `<span class="smart-card-rating">★ ${rating}</span>` : ''}
+                                </div>
+                            </div>`;
+                        card.addEventListener('click', () => {
+                            overlay.classList.remove('active');
+                            openDetails(item.id, item._type);
+                        });
+                        frag.appendChild(card);
+                    });
+                    results.appendChild(frag);
+                } catch (err) {
+                    console.error('Smart search error:', err);
+                    results.innerHTML = '<div style="color:red;padding:16px 0;">Erro ao buscar. Tente novamente.</div>';
+                }
+            });
+        }
+
+        // Reset to normal mode when overlay is closed
+        const origCloseHandler = DOM.closeSearch;
+        if (origCloseHandler) {
+            DOM.closeSearch.addEventListener('click', _activateNormalMode);
+        }
     }
 
     // ─── Details Modal ────────────────────────────────────────────────
