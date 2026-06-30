@@ -198,250 +198,453 @@
     white-space: nowrap;
 }
 
-/* ────────────────────────────────────────────────
-   LIQUID GLASS THEME
-   Apple WWDC 2025 — frosted translucent surfaces
-   ──────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════
+   LIQUID GLASS THEME  —  Apple iOS 26 / macOS Tahoe
+   ----------------------------------------------------
+   Goal: feel like a native SwiftUI app, not a webpage.
+   - SF Pro system font with tight optical tracking
+   - Exact iOS semantic colors (systemBlue, label, fills)
+   - Liquid Glass material: blur + saturate + brightness
+     with specular edge-lighting (inset hairline highlights)
+   - 0.5px hairline borders, squircle radii, spring motion
+   ════════════════════════════════════════════════ */
 [data-theme="liquid-glass"] {
-    --bg-color: #f2f2f7;
-    --text-primary: #1c1c1e;
-    --text-secondary: #3a3a3c;
-    --text-muted: #6c6c70;
-    --accent-color: #0071e3;
-    --card-bg: rgba(255, 255, 255, 0.65);
-    --border-color: rgba(0, 0, 0, 0.1);
-    --glass-bg: rgba(255, 255, 255, 0.6);
-    --nav-bg: rgba(242, 242, 247, 0.75);
-    --glass-grad: linear-gradient(135deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.45) 100%);
-    --glass-grad-hover: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.65) 100%);
-    --glass-border: 1px solid rgba(255,255,255,0.85);
-    --glass-border-hover: rgba(255,255,255,1);
-    --glass-shadow: 0 2px 20px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
-    --glass-shadow-hover: 0 6px 30px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,1);
-    --focus-ring: 0 0 0 2px rgba(0,113,227,0.3), 0 0 0 4px rgba(0,113,227,0.12);
-    --focus-glow: 0 0 12px 2px rgba(0,113,227,0.2);
+    /* iOS semantic colors (Light) */
+    --bg-color: #f2f2f7;                       /* systemGroupedBackground */
+    --text-primary: #000000;                   /* label */
+    --text-secondary: rgba(60, 60, 67, 0.6);   /* secondaryLabel */
+    --text-muted: rgba(60, 60, 67, 0.45);      /* tertiaryLabel-ish */
+    --accent-color: #007aff;                   /* systemBlue */
+    --lg-blue: #007aff;
+    --lg-blue-press: #0063cc;
+    --lg-separator: rgba(60, 60, 67, 0.18);
+    --lg-fill: rgba(120, 120, 128, 0.16);      /* secondarySystemFill */
+    --lg-fill-strong: rgba(120, 120, 128, 0.24);
+
+    --card-bg: rgba(255, 255, 255, 0.62);
+    --border-color: rgba(60, 60, 67, 0.18);
+    --glass-bg: rgba(255, 255, 255, 0.62);
+    --nav-bg: rgba(255, 255, 255, 0.5);
+
+    /* Liquid Glass material recipe */
+    --lg-blur: blur(28px) saturate(180%) brightness(1.06);
+    --lg-blur-heavy: blur(40px) saturate(200%) brightness(1.05);
+    --glass-grad: linear-gradient(145deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.42) 100%);
+    --glass-grad-hover: linear-gradient(145deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.6) 100%);
+    --glass-border: 0.5px solid rgba(255,255,255,0.65);
+    --glass-border-hover: rgba(255,255,255,0.9);
+    /* specular: bright top edge + faint bottom edge + soft ambient drop */
+    --glass-shadow:
+        inset 0 0.5px 0 0 rgba(255,255,255,0.9),
+        inset 0 -0.5px 0 0 rgba(255,255,255,0.22),
+        0 1px 1px rgba(0,0,0,0.04),
+        0 8px 28px rgba(0,0,0,0.10);
+    --glass-shadow-hover:
+        inset 0 0.5px 0 0 rgba(255,255,255,1),
+        inset 0 -0.5px 0 0 rgba(255,255,255,0.3),
+        0 2px 3px rgba(0,0,0,0.05),
+        0 12px 36px rgba(0,0,0,0.14);
+    --focus-ring: 0 0 0 4px rgba(0,122,255,0.28);
+    --focus-glow: 0 0 0 4px rgba(0,122,255,0.18);
+
+    /* Continuous (squircle-ish) radii — Apple uses generous rounding */
+    --radius-xs: 8px;
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+    --radius-xl: 28px;
+    --radius-pill: 980px;
+
+    /* Apple motion — smooth standard + springy interactive */
+    --transition-fast: 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+    --transition-base: 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    --transition-slow: 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+    --lg-spring: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ── System typography: the single biggest "native" tell ── */
+[data-theme="liquid-glass"],
+[data-theme="liquid-glass"] body,
+[data-theme="liquid-glass"] button,
+[data-theme="liquid-glass"] input {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+                 "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+}
+
+/* Soft system-grey desktop wallpaper with faint color wash */
 [data-theme="liquid-glass"] body {
-    background: linear-gradient(160deg, #e8f0fe 0%, #f2f2f7 45%, #fce4ec 100%);
+    background:
+        radial-gradient(120% 80% at 15% 0%, rgba(0,122,255,0.10) 0%, transparent 50%),
+        radial-gradient(120% 90% at 100% 10%, rgba(255,55,95,0.07) 0%, transparent 55%),
+        radial-gradient(100% 100% at 50% 100%, rgba(52,199,89,0.06) 0%, transparent 60%),
+        linear-gradient(180deg, #f5f5f7 0%, #eef0f3 100%);
     background-attachment: fixed;
 }
 
+/* ── Floating glass tab bar ── */
 [data-theme="liquid-glass"] .top-nav {
-    background: rgba(255,255,255,0.55) !important;
-    backdrop-filter: blur(40px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-    border: 1px solid rgba(255,255,255,0.85) !important;
-    box-shadow: 0 2px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+    background: var(--glass-grad) !important;
+    backdrop-filter: var(--lg-blur-heavy) !important;
+    -webkit-backdrop-filter: var(--lg-blur-heavy) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--radius-pill) !important;
+    box-shadow: var(--glass-shadow) !important;
+    padding: 7px 10px !important;
 }
 
 @media (max-width: 768px) {
     [data-theme="liquid-glass"] .top-nav {
-        background: rgba(242,242,247,0.82) !important;
-        border-top: 1px solid rgba(255,255,255,0.85) !important;
-        box-shadow: 0 -2px 20px rgba(0,0,0,0.06) !important;
+        background: rgba(255,255,255,0.6) !important;
+        backdrop-filter: var(--lg-blur-heavy) !important;
+        -webkit-backdrop-filter: var(--lg-blur-heavy) !important;
+        border: none !important;
+        border-top: 0.5px solid rgba(255,255,255,0.7) !important;
+        border-radius: 0 !important;
+        box-shadow:
+            inset 0 0.5px 0 0 rgba(255,255,255,0.9),
+            0 -1px 20px rgba(0,0,0,0.07) !important;
     }
 }
 
+/* Thin SF-Symbols-like icon strokes */
+[data-theme="liquid-glass"] .nav-icon,
+[data-theme="liquid-glass"] .nav-item i,
+[data-theme="liquid-glass"] .theme-toggle-btn svg {
+    stroke-width: 1.8 !important;
+}
+
 [data-theme="liquid-glass"] .nav-item {
-    color: #1c1c1e;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-radius: var(--radius-pill) !important;
+    transition: color var(--transition-fast), transform var(--lg-spring), background var(--transition-fast);
 }
 
 [data-theme="liquid-glass"] .nav-item:hover {
     color: #000;
+    transform: scale(1.04);
+}
+[data-theme="liquid-glass"] .nav-item:active {
+    transform: scale(0.94);
 }
 
+/* Selected = floating white glass capsule with systemBlue label */
 [data-theme="liquid-glass"] .nav-item.active {
-    background: rgba(0,0,0,0.09) !important;
-    color: #000 !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.8)) !important;
+    color: var(--lg-blue) !important;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,1),
+        0 1px 1px rgba(0,0,0,0.04),
+        0 4px 12px rgba(0,0,0,0.12) !important;
 }
 
 @media (max-width: 768px) {
     [data-theme="liquid-glass"] .nav-item.active {
-        color: #0071e3 !important;
+        color: var(--lg-blue) !important;
         background: none !important;
+        box-shadow: none !important;
     }
     [data-theme="liquid-glass"] .nav-item {
-        color: #3a3a3c;
+        color: var(--text-secondary);
     }
 }
 
+/* ── Hero: SF large-title styling (not uppercase) ── */
 [data-theme="liquid-glass"] .hero-overlay {
     background: linear-gradient(
         to top,
-        rgba(242,242,247,0.97) 0%,
-        rgba(242,242,247,0.5) 55%,
+        #eef0f3 0%,
+        rgba(238,240,243,0.72) 38%,
+        rgba(238,240,243,0.15) 75%,
         transparent 100%
     );
 }
 
+[data-theme="liquid-glass"] .hero-title {
+    text-transform: none !important;
+    letter-spacing: -0.03em !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+    text-shadow: none !important;
+}
+
+[data-theme="liquid-glass"] .hero-meta,
+[data-theme="liquid-glass"] .hero-overview {
+    color: var(--text-secondary) !important;
+    text-shadow: none !important;
+}
+
 [data-theme="liquid-glass"] .catalog-container,
-[data-theme="liquid-glass"] .row {
-    color: #1c1c1e;
-}
-
+[data-theme="liquid-glass"] .row,
 [data-theme="liquid-glass"] .row-title {
-    color: #1c1c1e;
+    color: #000;
+}
+[data-theme="liquid-glass"] .row-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
-[data-theme="liquid-glass"] .card {
-    background: rgba(255,255,255,0.6) !important;
-    backdrop-filter: blur(20px) saturate(150%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
-    border: 1px solid rgba(255,255,255,0.85) !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
+[data-theme="liquid-glass"] .card,
+[data-theme="liquid-glass"] .media-card {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border: 0.5px solid rgba(255,255,255,0.7) !important;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.85),
+        0 4px 18px rgba(0,0,0,0.08) !important;
 }
 
+/* ── Buttons: iOS filled (systemBlue) + tinted glass ── */
 [data-theme="liquid-glass"] .btn-primary {
-    background: #0071e3 !important;
+    background: linear-gradient(180deg, #1a8aff 0%, var(--lg-blue) 100%) !important;
     color: #fff !important;
-    box-shadow: 0 4px 15px rgba(0,113,227,0.35) !important;
+    font-weight: 600 !important;
+    border: none !important;
+    border-radius: var(--radius-pill) !important;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.5),
+        0 1px 2px rgba(0,0,0,0.1),
+        0 6px 18px rgba(0,122,255,0.38) !important;
+    transition: transform var(--lg-spring), filter var(--transition-fast), box-shadow var(--transition-fast) !important;
 }
-
 [data-theme="liquid-glass"] .btn-primary:hover {
-    background: #0077ed !important;
+    filter: brightness(1.05);
+    transform: scale(1.02);
+}
+[data-theme="liquid-glass"] .btn-primary:active {
+    transform: scale(0.96);
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.4),
+        0 2px 8px rgba(0,122,255,0.3) !important;
 }
 
 [data-theme="liquid-glass"] .pill-btn {
-    color: #1c1c1e !important;
-    background: rgba(255,255,255,0.6) !important;
-    border: 1px solid rgba(0,0,0,0.1) !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+    color: #000 !important;
+    background: var(--glass-grad) !important;
+    backdrop-filter: var(--lg-blur) !important;
+    -webkit-backdrop-filter: var(--lg-blur) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--radius-pill) !important;
+    box-shadow: var(--glass-shadow) !important;
+    font-weight: 500 !important;
+    transition: transform var(--lg-spring), background var(--transition-fast), box-shadow var(--transition-fast) !important;
 }
-
 [data-theme="liquid-glass"] .pill-btn:hover {
-    background: rgba(255,255,255,0.8) !important;
+    background: var(--glass-grad-hover) !important;
+    box-shadow: var(--glass-shadow-hover) !important;
+    transform: scale(1.02);
+}
+[data-theme="liquid-glass"] .pill-btn:active {
+    transform: scale(0.96);
 }
 
+/* ── Search: frosted sheet + iOS segmented control ── */
 [data-theme="liquid-glass"] .search-overlay {
-    background: rgba(242,242,247,0.88);
-    backdrop-filter: blur(40px) saturate(160%);
-    -webkit-backdrop-filter: blur(40px) saturate(160%);
+    background: rgba(238,240,243,0.6);
+    backdrop-filter: var(--lg-blur-heavy);
+    -webkit-backdrop-filter: var(--lg-blur-heavy);
 }
 
 [data-theme="liquid-glass"] .search-modal {
-    background: rgba(255,255,255,0.75) !important;
-    border: 1px solid rgba(255,255,255,0.9) !important;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
-    color: #1c1c1e !important;
+    background: var(--glass-grad) !important;
+    backdrop-filter: var(--lg-blur-heavy) !important;
+    -webkit-backdrop-filter: var(--lg-blur-heavy) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.9),
+        0 24px 60px rgba(0,0,0,0.18) !important;
+    color: #000 !important;
 }
 
 [data-theme="liquid-glass"] .search-modal input,
 [data-theme="liquid-glass"] input#searchInput {
-    background: rgba(255,255,255,0.8) !important;
-    color: #1c1c1e !important;
-    border: 1px solid rgba(0,0,0,0.1) !important;
-}
-
-[data-theme="liquid-glass"] .search-tab {
-    color: #3a3a3c !important;
-}
-
-[data-theme="liquid-glass"] .search-tab.active {
-    background: rgba(0,0,0,0.09) !important;
+    background: var(--lg-fill) !important;
     color: #000 !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+}
+[data-theme="liquid-glass"] input#searchInput::placeholder {
+    color: var(--text-muted) !important;
 }
 
+/* segmented control track */
+[data-theme="liquid-glass"] .search-tabs {
+    background: var(--lg-fill) !important;
+    border-radius: var(--radius-xs) !important;
+    padding: 2px !important;
+    gap: 0 !important;
+}
+[data-theme="liquid-glass"] .search-tab {
+    color: #000 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 7px !important;
+    font-weight: 500 !important;
+    transition: background var(--transition-fast) !important;
+}
+[data-theme="liquid-glass"] .search-tab.active {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04), 0 3px 8px rgba(0,0,0,0.10) !important;
+}
+
+/* ── Details sheet ── */
 [data-theme="liquid-glass"] .details-immersive {
-    background: rgba(242,242,247,0.95) !important;
-    backdrop-filter: blur(30px) !important;
-    -webkit-backdrop-filter: blur(30px) !important;
+    background: rgba(238,240,243,0.85) !important;
+    backdrop-filter: var(--lg-blur-heavy) !important;
+    -webkit-backdrop-filter: var(--lg-blur-heavy) !important;
 }
 
 [data-theme="liquid-glass"] .details-gradient {
-    background: linear-gradient(to top, rgba(242,242,247,1) 0%, rgba(242,242,247,0.6) 60%, transparent 100%) !important;
+    background: linear-gradient(to top, #eef0f3 0%, rgba(238,240,243,0.55) 60%, transparent 100%) !important;
 }
 
-[data-theme="liquid-glass"] .details-title,
+[data-theme="liquid-glass"] .details-title {
+    color: #000 !important;
+    letter-spacing: -0.03em !important;
+    font-weight: 700 !important;
+}
 [data-theme="liquid-glass"] .details-meta,
-[data-theme="liquid-glass"] .details-overview,
+[data-theme="liquid-glass"] .details-overview {
+    color: var(--text-secondary) !important;
+}
 [data-theme="liquid-glass"] .details-info-block {
-    color: #1c1c1e !important;
+    color: #000 !important;
 }
 
 [data-theme="liquid-glass"] .media-type-badge {
-    background: rgba(0,0,0,0.08) !important;
-    color: #3a3a3c !important;
-    border-color: rgba(0,0,0,0.1) !important;
+    background: var(--lg-fill) !important;
+    color: var(--text-secondary) !important;
+    border: none !important;
+    border-radius: var(--radius-xs) !important;
+    font-weight: 600 !important;
 }
 
 [data-theme="liquid-glass"] .custom-dropdown-trigger {
-    background: rgba(255,255,255,0.65) !important;
-    color: #1c1c1e !important;
-    border: 1px solid rgba(0,0,0,0.1) !important;
+    background: var(--glass-grad) !important;
+    backdrop-filter: var(--lg-blur) !important;
+    -webkit-backdrop-filter: var(--lg-blur) !important;
+    color: #000 !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: var(--glass-shadow) !important;
 }
 
 [data-theme="liquid-glass"] .custom-dropdown-menu {
-    background: rgba(255,255,255,0.9) !important;
-    border: 1px solid rgba(0,0,0,0.08) !important;
-    color: #1c1c1e !important;
+    background: var(--glass-grad) !important;
+    backdrop-filter: var(--lg-blur-heavy) !important;
+    -webkit-backdrop-filter: var(--lg-blur-heavy) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--radius-md) !important;
+    color: #000 !important;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.9),
+        0 16px 40px rgba(0,0,0,0.18) !important;
 }
 
 [data-theme="liquid-glass"] .stream-entry {
-    background: rgba(255,255,255,0.55) !important;
-    border: 1px solid rgba(0,0,0,0.08) !important;
-    color: #1c1c1e !important;
+    background: var(--card-bg) !important;
+    backdrop-filter: var(--lg-blur) !important;
+    -webkit-backdrop-filter: var(--lg-blur) !important;
+    border: 0.5px solid rgba(255,255,255,0.6) !important;
+    border-radius: var(--radius-md) !important;
+    color: #000 !important;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.85),
+        0 2px 10px rgba(0,0,0,0.06) !important;
+    transition: transform var(--lg-spring), box-shadow var(--transition-fast) !important;
 }
-
 [data-theme="liquid-glass"] .stream-entry:hover {
-    background: rgba(255,255,255,0.75) !important;
+    transform: scale(1.01);
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,1),
+        0 6px 20px rgba(0,0,0,0.12) !important;
+}
+[data-theme="liquid-glass"] .stream-entry:active {
+    transform: scale(0.985);
 }
 
-[data-theme="liquid-glass"] .stream-entry-name,
+[data-theme="liquid-glass"] .stream-entry-name {
+    color: #000 !important;
+}
 [data-theme="liquid-glass"] .stream-entry-desc,
 [data-theme="liquid-glass"] .streaming-label,
 [data-theme="liquid-glass"] .download-label {
-    color: #3a3a3c !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="liquid-glass"] .stream-play-icon {
+    color: var(--lg-blue) !important;
 }
 
 [data-theme="liquid-glass"] .stream-badge {
-    background: #0071e3 !important;
+    background: var(--lg-blue) !important;
     color: #fff !important;
+    border-radius: var(--radius-xs) !important;
+    font-weight: 600 !important;
 }
 
 [data-theme="liquid-glass"] .app-footer {
-    color: #6c6c70 !important;
+    color: var(--text-muted) !important;
 }
 
 [data-theme="liquid-glass"] .skeleton-row-title,
 [data-theme="liquid-glass"] .skeleton-card {
-    background: rgba(0,0,0,0.06) !important;
+    background: var(--lg-fill) !important;
 }
 
+/* ── Theme picker as a glass popover ── */
 [data-theme="liquid-glass"] .theme-picker {
-    background: rgba(255,255,255,0.75) !important;
-    border: 1px solid rgba(255,255,255,0.95) !important;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1) !important;
+    background: var(--glass-grad) !important;
+    backdrop-filter: var(--lg-blur-heavy) !important;
+    -webkit-backdrop-filter: var(--lg-blur-heavy) !important;
+    border: var(--glass-border) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.9),
+        0 24px 60px rgba(0,0,0,0.2) !important;
 }
 
 [data-theme="liquid-glass"] .theme-picker-title {
-    color: #3a3a3c !important;
+    color: var(--text-secondary) !important;
 }
 
 [data-theme="liquid-glass"] .theme-picker-close {
-    color: #6c6c70 !important;
+    color: var(--text-muted) !important;
 }
 
+[data-theme="liquid-glass"] .theme-option {
+    border-radius: var(--radius-sm) !important;
+    transition: background var(--transition-fast), transform var(--lg-spring) !important;
+}
 [data-theme="liquid-glass"] .theme-option:hover {
-    background: rgba(0,0,0,0.06) !important;
-    border-color: rgba(0,0,0,0.08) !important;
+    background: var(--lg-fill) !important;
+    border-color: transparent !important;
 }
-
+[data-theme="liquid-glass"] .theme-option:active {
+    transform: scale(0.97);
+}
 [data-theme="liquid-glass"] .theme-option.active {
-    background: rgba(0,0,0,0.09) !important;
-    border-color: rgba(0,0,0,0.15) !important;
+    background: var(--lg-fill-strong) !important;
+    border-color: transparent !important;
 }
 
 [data-theme="liquid-glass"] .theme-option-label {
-    color: #1c1c1e !important;
+    color: #000 !important;
+    font-weight: 500 !important;
 }
 
 [data-theme="liquid-glass"] .theme-option-desc {
-    color: #6c6c70 !important;
+    color: var(--text-muted) !important;
 }
 
 [data-theme="liquid-glass"] .theme-option-check {
-    color: #0071e3 !important;
+    color: var(--lg-blue) !important;
 }
 
 /* ────────────────────────────────────────────────
