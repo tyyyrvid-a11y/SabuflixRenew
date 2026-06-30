@@ -12,7 +12,7 @@
 
     var THEME_COLORS = {
         'dark':          '#0a0a0a',
-        'liquid-glass':  '#f2f2f7',
+        'liquid-glass':  '#1c1c1e',
         'windows95':     '#008080',
         'frutiger-aero': '#87ceeb',
     };
@@ -129,13 +129,13 @@
         var navLinks = document.querySelector('.nav-links');
         var mobileSearch = document.getElementById('btnOpenSearchMobile');
         if (navLinks && mobileSearch) {
-            navLinks.insertBefore(makeBtn('mobile-theme-btn'), mobileSearch);
+            navLinks.insertBefore(makeBtn('mobile-only'), mobileSearch);
         }
 
-        /* Desktop: append to nav-actions */
+        /* Desktop: append to nav-actions (already desktop-only) */
         var navActions = document.querySelector('.nav-actions');
         if (navActions) {
-            navActions.appendChild(makeBtn('desktop-theme-btn'));
+            navActions.appendChild(makeBtn('desktop-only'));
         }
     }
 
