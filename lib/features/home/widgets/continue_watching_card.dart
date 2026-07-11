@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import '../../../core/haptics.dart';
 import '../../../core/theme/app_theme.dart';
@@ -32,7 +32,7 @@ class ContinueWatchingCard extends StatelessWidget {
                   children: [
                     url.isEmpty
                         ? Container(color: AppColors.surface)
-                        : CachedNetworkImage(imageUrl: url, fit: BoxFit.cover),
+                        : Image.network(url, fit: BoxFit.cover),
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(

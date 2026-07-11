@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/haptics.dart';
@@ -80,15 +80,18 @@ class _PosterImage extends StatelessWidget {
         child: const Icon(Icons.movie_creation_outlined, color: AppColors.textTertiary),
       );
     }
-    return CachedNetworkImage(
-      imageUrl: url,
+    return Image.network(
+      url,
       fit: BoxFit.cover,
-      placeholder: (context, _) => Shimmer.fromColors(
-        baseColor: AppColors.surface,
-        highlightColor: AppColors.backgroundAlt,
-        child: Container(color: AppColors.surface),
-      ),
-      errorWidget: (context, _, __) => Container(
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Shimmer.fromColors(
+          baseColor: AppColors.surface,
+          highlightColor: AppColors.backgroundAlt,
+          child: Container(color: AppColors.surface),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => Container(
         color: AppColors.surface,
         child: const Icon(Icons.broken_image_outlined, color: AppColors.textTertiary),
       ),

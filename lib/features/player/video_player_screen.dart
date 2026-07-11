@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -215,8 +215,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   fit: StackFit.expand,
                   children: [
                     if (!isLoaded && widget.item != null && widget.item!.backdropUrl.isNotEmpty)
-                      CachedNetworkImage(
-                        imageUrl: widget.item!.backdropUrl,
+                      Image.network(
+                        widget.item!.backdropUrl,
                         fit: BoxFit.cover,
                       ),
                     if (!isLoaded)

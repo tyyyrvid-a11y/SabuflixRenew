@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/glass/glass_button.dart';
@@ -111,15 +111,18 @@ class _Backdrop extends StatelessWidget {
     if (url.isEmpty) {
       return Container(color: AppColors.surface);
     }
-    return CachedNetworkImage(
-      imageUrl: url,
+    return Image.network(
+      url,
       fit: BoxFit.cover,
-      placeholder: (context, _) => Shimmer.fromColors(
-        baseColor: AppColors.surface,
-        highlightColor: AppColors.backgroundAlt,
-        child: Container(color: AppColors.surface),
-      ),
-      errorWidget: (context, _, __) => Container(color: AppColors.surface),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Shimmer.fromColors(
+          baseColor: AppColors.surface,
+          highlightColor: AppColors.backgroundAlt,
+          child: Container(color: AppColors.surface),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => Container(color: AppColors.surface),
     );
   }
 }

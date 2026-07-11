@@ -27,13 +27,16 @@ class StreamResolver {
     }
 
     final imdbId = item.imdbId!;
-    // Por enquanto, sempre usamos '/movie' já que não temos suporte a temporadas/episódios na UI.
-    // Se precisarmos de séries no futuro, será '/series/$imdbId:$season:$episode.json'.
-
-    final endpoints = [
-      'https://kingvod.wasmer.app/index.php/stream/movie/$imdbId.json',
-      'https://froststream.cloutteam.com/stream/movie/$imdbId.json',
-    ];
+    
+    final endpoints = <String>[];
+    if (item.mediaType == MediaType.movie) {
+      endpoints.add('https://kingvod.wasmer.app/index.php/stream/movie/$imdbId.json');
+      endpoints.add('https://froststream.cloutteam.com/stream/movie/$imdbId.json');
+    } else {
+      // Para séries, busca S01E01 temporariamente
+      endpoints.add('https://kingvod.wasmer.app/index.php/stream/series/$imdbId:1:1.json');
+      endpoints.add('https://froststream.cloutteam.com/stream/series/$imdbId:1:1.json');
+    }
 
     final futures = endpoints.map((endpoint) => _fetchStreams(endpoint));
     final results = await Future.wait(futures);
@@ -50,6 +53,13 @@ class StreamResolver {
         url: 'https://mgeb.top/embed/${item.id}',
         name: 'Razer',
         title: 'Assistir pelo navegador (Streaming Externo)',
+        isExternal: true,
+      ));
+    } else {
+      allStreams.add(ResolvedStream(
+        url: 'https://mgeb.top/embed/tv/${item.id}/1/1',
+        name: 'Razer',
+        title: 'Assistir pelo navegador (S01E01 - Externo)',
         isExternal: true,
       ));
     }

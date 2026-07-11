@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/glass/glass_button.dart';
@@ -198,7 +198,7 @@ class _Backdrop extends StatelessWidget {
         children: [
           url.isEmpty
               ? Container(color: AppColors.surface)
-              : CachedNetworkImage(imageUrl: url, fit: BoxFit.cover),
+              : Image.network(url, fit: BoxFit.cover),
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -288,7 +288,7 @@ class _CastList extends StatelessWidget {
                             color: AppColors.surface,
                             child: const Icon(Icons.person, color: AppColors.textTertiary),
                           )
-                        : CachedNetworkImage(imageUrl: member.profileUrl, fit: BoxFit.cover),
+                        : Image.network(member.profileUrl, fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 6),
