@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:video_player/video_player.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import '../../core/glass/glass_button.dart';
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
@@ -26,75 +26,94 @@ class VideoPlayerScreen extends StatefulWidget {
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  VideoPlayerController? _controller;
+  late final Player player;
+  late final VideoController videoController;
+
+  bool _isLoaded = false;
+  bool _isPlaying = false;
+  bool _isBuffering = false;
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+  Duration _buffer = Duration.zero;
+
   bool _controlsVisible = true;
   bool _fullscreen = false;
   String? _error;
   Timer? _hideTimer;
   int _lastSavedSeconds = -1;
 
+  StreamSubscription? _playingSub;
+  StreamSubscription? _positionSub;
+  StreamSubscription? _durationSub;
+  StreamSubscription? _bufferSub;
+  StreamSubscription? _errorSub;
+  StreamSubscription? _bufferingSub;
+
   @override
   void initState() {
     super.initState();
+    player = Player();
+    videoController = VideoController(player);
     _init();
   }
 
   Future<void> _init() async {
     try {
-      VideoPlayerController controller;
+      _playingSub = player.stream.playing.listen((v) => setState(() => _isPlaying = v));
+      _positionSub = player.stream.position.listen((v) {
+        setState(() => _position = v);
+        _saveProgress();
+      });
+      _durationSub = player.stream.duration.listen((v) => setState(() => _duration = v));
+      _bufferSub = player.stream.buffer.listen((v) => setState(() => _buffer = v));
+      _bufferingSub = player.stream.buffering.listen((v) => setState(() => _isBuffering = v));
+      _errorSub = player.stream.error.listen((e) => setState(() => _error = 'Erro no vídeo:\n$e'));
 
+      player.stream.videoParams.listen((v) {
+        if (!_isLoaded && v.w != null && v.w! > 0) {
+          setState(() => _isLoaded = true);
+        }
+      });
+
+      Media media;
       if (widget.localFile != null) {
-        controller = VideoPlayerController.file(widget.localFile!);
+        media = Media(widget.localFile!.path);
       } else if (widget.resolvedStream != null) {
-        controller = VideoPlayerController.networkUrl(
-          Uri.parse(widget.resolvedStream!.url),
-          httpHeaders: widget.resolvedStream!.headers ?? const {},
-        );
+        media = Media(widget.resolvedStream!.url, httpHeaders: widget.resolvedStream!.headers);
       } else if (widget.item != null) {
         final streams = await StreamResolver.resolve(widget.item!);
         final stream = streams.first;
-        controller = VideoPlayerController.networkUrl(
-          Uri.parse(stream.url),
-          httpHeaders: stream.headers ?? const {},
-        );
+        media = Media(stream.url, httpHeaders: stream.headers);
       } else {
         throw Exception('Nenhuma mídia fornecida.');
       }
 
-      await controller.initialize();
-      
+      await player.open(media, play: false);
+
       if (widget.item != null) {
         final savedPos = WatchHistoryStore.instance.getSavedPosition(widget.item!);
         if (savedPos != null && savedPos > 0) {
-          await controller.seekTo(Duration(seconds: savedPos));
+          await player.seek(Duration(seconds: savedPos));
         }
       }
-      
-      controller.addListener(_onTick);
-      await controller.play();
 
-      if (!mounted) {
-        controller.dispose();
-        return;
-      }
-      setState(() => _controller = controller);
+      await player.play();
       _scheduleHide();
+      
+      // Fallback para isLoaded se videoParams atrasar
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted && !_isLoaded) setState(() => _isLoaded = true);
+      });
     } catch (e) {
       if (mounted) setState(() => _error = 'Não foi possível carregar o vídeo.\n$e');
     }
   }
 
-  void _onTick() {
-    if (mounted) setState(() {});
-    _saveProgress();
-  }
-
   void _saveProgress({bool force = false}) {
-    final controller = _controller;
-    if (controller == null || widget.item == null || !controller.value.isInitialized) return;
+    if (widget.item == null || !_isLoaded) return;
     
-    final pos = controller.value.position.inSeconds;
-    final dur = controller.value.duration.inSeconds;
+    final pos = _position.inSeconds;
+    final dur = _duration.inSeconds;
     
     if (force || (pos != _lastSavedSeconds && pos % 5 == 0)) {
       _lastSavedSeconds = pos;
@@ -109,7 +128,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void _scheduleHide() {
     _hideTimer?.cancel();
     _hideTimer = Timer(const Duration(seconds: 4), () {
-      if (mounted && (_controller?.value.isPlaying ?? false)) {
+      if (mounted && _isPlaying) {
         setState(() => _controlsVisible = false);
       }
     });
@@ -121,24 +140,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   void _togglePlay() {
-    final controller = _controller;
-    if (controller == null) return;
     Haptics.light();
-    if (controller.value.isPlaying) {
-      controller.pause();
+    if (_isPlaying) {
+      player.pause();
     } else {
-      controller.play();
+      player.play();
       _scheduleHide();
     }
-    setState(() {});
   }
   
   void _skip(int seconds) {
-    final controller = _controller;
-    if (controller == null) return;
     Haptics.light();
-    final newPosition = controller.value.position + Duration(seconds: seconds);
-    controller.seekTo(newPosition);
+    final newPosition = _position + Duration(seconds: seconds);
+    player.seek(newPosition);
     _scheduleHide();
   }
 
@@ -161,8 +175,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void dispose() {
     _saveProgress(force: true);
     _hideTimer?.cancel();
-    _controller?.removeListener(_onTick);
-    _controller?.dispose();
+    _playingSub?.cancel();
+    _positionSub?.cancel();
+    _durationSub?.cancel();
+    _bufferSub?.cancel();
+    _errorSub?.cancel();
+    _bufferingSub?.cancel();
+    player.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -180,10 +199,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = _controller;
-    final isLoaded = controller != null && controller.value.isInitialized;
-    final isBuffering = controller != null && controller.value.isBuffering;
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
@@ -191,14 +206,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (isLoaded)
-              Center(
-                child: AspectRatio(
-                  aspectRatio: controller.value.aspectRatio,
-                  child: VideoPlayer(controller),
-                ),
-              )
-            else if (_error != null)
+            Video(
+              controller: videoController,
+              controls: NoVideoControls,
+            ),
+            
+            if (_error != null)
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
@@ -208,23 +221,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
             // Apple Style Loading Screen (Blurred Backdrop + Spinner)
             AnimatedOpacity(
-              opacity: (isLoaded && !isBuffering && controller.value.isPlaying) ? 0 : 1,
+              opacity: (_isLoaded && !_isBuffering && _isPlaying) ? 0 : 1,
               duration: const Duration(milliseconds: 500),
               child: IgnorePointer(
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (!isLoaded && widget.item != null && widget.item!.backdropUrl.isNotEmpty)
+                    if (!_isLoaded && widget.item != null && widget.item!.backdropUrl.isNotEmpty)
                       Image.network(
                         widget.item!.backdropUrl,
                         fit: BoxFit.cover,
                       ),
-                    if (!isLoaded)
+                    if (!_isLoaded)
                       BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                         child: Container(color: Colors.black.withOpacity(0.5)),
                       ),
-                    if (_error == null)
+                    if (_error == null && (!_isLoaded || _isBuffering))
                       const Center(
                         child: CupertinoActivityIndicator(radius: 18, color: Colors.white),
                       ),
@@ -235,13 +248,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
             // Apple Style Controls
             AnimatedOpacity(
-              opacity: _controlsVisible && isLoaded ? 1 : 0,
+              opacity: _controlsVisible && _isLoaded ? 1 : 0,
               duration: const Duration(milliseconds: 250),
               child: IgnorePointer(
-                ignoring: !_controlsVisible || !isLoaded,
+                ignoring: !_controlsVisible || !_isLoaded,
                 child: _Controls(
                   title: widget.localTitle ?? widget.item?.title ?? 'Vídeo Local',
-                  controller: controller,
+                  isPlaying: _isPlaying,
+                  position: _position,
+                  duration: _duration,
+                  buffer: _buffer,
                   fullscreen: _fullscreen,
                   onBack: () => Navigator.of(context).pop(),
                   onPlayPause: _togglePlay,
@@ -249,6 +265,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   onSkipForward: () => _skip(15),
                   onFullscreen: _toggleFullscreen,
                   formatDuration: _format,
+                  onSeek: (pos) {
+                    player.seek(pos);
+                    _scheduleHide();
+                  },
                 ),
               ),
             ),
@@ -262,7 +282,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 class _Controls extends StatelessWidget {
   const _Controls({
     required this.title,
-    required this.controller,
+    required this.isPlaying,
+    required this.position,
+    required this.duration,
+    required this.buffer,
     required this.fullscreen,
     required this.onBack,
     required this.onPlayPause,
@@ -270,10 +293,14 @@ class _Controls extends StatelessWidget {
     required this.onSkipForward,
     required this.onFullscreen,
     required this.formatDuration,
+    required this.onSeek,
   });
 
   final String title;
-  final VideoPlayerController? controller;
+  final bool isPlaying;
+  final Duration position;
+  final Duration duration;
+  final Duration buffer;
   final bool fullscreen;
   final VoidCallback onBack;
   final VoidCallback onPlayPause;
@@ -281,6 +308,7 @@ class _Controls extends StatelessWidget {
   final VoidCallback onSkipForward;
   final VoidCallback onFullscreen;
   final String Function(Duration) formatDuration;
+  final Function(Duration) onSeek;
 
   @override
   Widget build(BuildContext context) {
@@ -352,9 +380,7 @@ class _Controls extends StatelessWidget {
                     height: 72,
                     decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), shape: BoxShape.circle),
                     child: Icon(
-                      controller != null && controller!.value.isPlaying
-                          ? CupertinoIcons.pause_fill
-                          : CupertinoIcons.play_fill,
+                      isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
                       color: Colors.white,
                       size: 36,
                     ),
@@ -378,30 +404,36 @@ class _Controls extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        controller != null ? formatDuration(controller!.value.position) : '--:--',
+                        formatDuration(position),
                         style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
                       ),
                       Text(
-                        controller != null ? '-${formatDuration(controller!.value.duration - controller!.value.position)}' : '--:--',
+                        '-${formatDuration(duration - position)}',
                         style: const TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  if (controller != null && controller!.value.isInitialized)
-                    SizedBox(
-                      height: 24,
-                      child: VideoProgressIndicator(
-                        controller!,
-                        allowScrubbing: true,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        colors: VideoProgressColors(
-                          playedColor: Colors.white,
-                          bufferedColor: Colors.white.withOpacity(0.3),
-                          backgroundColor: Colors.white.withOpacity(0.15),
-                        ),
+                  SizedBox(
+                    height: 24,
+                    child: SliderTheme(
+                      data: SliderThemeData(
+                        trackHeight: 4,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                        activeTrackColor: Colors.white,
+                        inactiveTrackColor: Colors.white.withOpacity(0.2),
+                        thumbColor: Colors.white,
+                      ),
+                      child: Slider(
+                        value: position.inMilliseconds.toDouble().clamp(0, duration.inMilliseconds.toDouble()),
+                        max: duration.inMilliseconds > 0 ? duration.inMilliseconds.toDouble() : 1,
+                        onChanged: (val) {
+                          onSeek(Duration(milliseconds: val.toInt()));
+                        },
                       ),
                     ),
+                  ),
                   const SizedBox(height: 12),
                   Align(
                     alignment: Alignment.centerRight,

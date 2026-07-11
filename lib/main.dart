@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:media_kit/media_kit.dart';
 import 'core/scroll/app_scroll_behavior.dart';
 import 'core/theme/app_theme.dart';
 import 'features/shell/root_shell.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MediaKit.ensureInitialized();
   runApp(const SabuFlixApp());
 }
 
