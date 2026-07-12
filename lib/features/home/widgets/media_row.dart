@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/responsive_layout.dart';
 import '../../../data/models/media_item.dart';
 import 'poster_card.dart';
 
@@ -34,7 +35,7 @@ class MediaRow extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 210,
+          height: ResponsiveLayout.getMediaRowHeight(context),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -42,7 +43,11 @@ class MediaRow extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, i) {
               final item = items[i];
-              return PosterCard(item: item, onTap: () => onItemTap(item));
+              return PosterCard(
+                item: item, 
+                onTap: () => onItemTap(item),
+                width: ResponsiveLayout.getPosterWidth(context),
+              );
             },
           ),
         ),

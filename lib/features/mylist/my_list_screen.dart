@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/responsive_layout.dart';
 import '../../data/services/my_list_store.dart';
 import '../../data/services/tmdb_service.dart';
 import '../details/details_screen.dart';
@@ -61,8 +62,8 @@ class _MyListScreenState extends State<MyListScreen> {
                   }
                   return GridView.builder(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: ResponsiveLayout.isDesktop(context) ? 6 : (ResponsiveLayout.isTablet(context) ? 4 : 3),
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 12,
                       childAspectRatio: 0.52,

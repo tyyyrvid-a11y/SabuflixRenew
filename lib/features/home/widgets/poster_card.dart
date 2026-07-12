@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/haptics.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/responsive_layout.dart';
 import '../../../data/models/media_item.dart';
 
 class PosterCard extends StatelessWidget {
@@ -54,8 +55,8 @@ class PosterCard extends StatelessWidget {
                 item.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 13,
+                style: TextStyle(
+                  fontSize: ResponsiveLayout.isDesktop(context) ? 14.5 : 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
