@@ -14,6 +14,7 @@ class MediaItem {
     required this.releaseDate,
     required this.genreIds,
     required this.mediaType,
+    this.tagline,
     this.runtime,
     this.imdbId,
     this.certification,
