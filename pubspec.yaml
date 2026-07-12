@@ -30,7 +30,7 @@ dev_dependencies:
 
 flutter_launcher_icons:
   android: "ic_launcher"
-  ios: true
+  ios: false
   image_path: "Icon.png"
   windows:
     generate: true
