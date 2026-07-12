@@ -21,7 +21,7 @@ class ResolvedStream {
 class StreamResolver {
   StreamResolver._();
 
-  static Future<List<ResolvedStream>> resolve(MediaItem item) async {
+  static Future<List<ResolvedStream>> resolve(MediaItem item, {int season = 1, int episode = 1}) async {
     if (item.imdbId == null || item.imdbId!.isEmpty) {
       throw Exception('IMDB ID não encontrado.');
     }
@@ -33,9 +33,8 @@ class StreamResolver {
       endpoints.add('https://kingvod.wasmer.app/index.php/stream/movie/$imdbId.json');
       endpoints.add('https://froststream.cloutteam.com/stream/movie/$imdbId.json');
     } else {
-      // Para séries, busca S01E01 temporariamente
-      endpoints.add('https://kingvod.wasmer.app/index.php/stream/series/$imdbId:1:1.json');
-      endpoints.add('https://froststream.cloutteam.com/stream/series/$imdbId:1:1.json');
+      endpoints.add('https://kingvod.wasmer.app/index.php/stream/series/$imdbId:$season:$episode.json');
+      endpoints.add('https://froststream.cloutteam.com/stream/series/$imdbId:$season:$episode.json');
     }
 
     final futures = endpoints.map((endpoint) => _fetchStreams(endpoint));
@@ -57,9 +56,9 @@ class StreamResolver {
       ));
     } else {
       allStreams.add(ResolvedStream(
-        url: 'https://mgeb.top/embed/tv/${item.id}/1/1',
+        url: 'https://mgeb.top/embed/tv/${item.id}/$season/$episode',
         name: 'Razer',
-        title: 'Assistir pelo navegador (S01E01 - Externo)',
+        title: 'Assistir pelo navegador (S${season.toString().padLeft(2, '0')}E${episode.toString().padLeft(2, '0')} - Externo)',
         isExternal: true,
       ));
     }

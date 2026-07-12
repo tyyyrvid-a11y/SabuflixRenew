@@ -24,6 +24,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
   late Future<_DetailsData> _future;
   final _myList = MyListStore.instance;
 
+  int _selectedSeason = 1;
+  int _selectedEpisode = 1;
+
   @override
   void initState() {
     super.initState();
@@ -48,7 +51,64 @@ class _DetailsScreenState extends State<DetailsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => SourceSelectionSheet(item: item, forDownload: forDownload),
+      builder: (_) => SourceSelectionSheet(
+        item: item, 
+        forDownload: forDownload,
+        season: _selectedSeason,
+        episode: _selectedEpisode,
+      ),
+    );
+  }
+
+  Widget _buildSeasonSelector(MediaItem details) {
+    if (details.mediaType != MediaType.tv || details.tvSeasons == null || details.tvSeasons!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    final currentSeason = details.tvSeasons!.firstWhere(
+      (s) => s.seasonNumber == _selectedSeason, 
+      orElse: () => details.tvSeasons!.first
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: _CustomDropdown<int>(
+              value: currentSeason.seasonNumber,
+              items: details.tvSeasons!.map((s) => DropdownMenuItem(
+                value: s.seasonNumber,
+                child: Text(s.name, style: const TextStyle(fontSize: 14)),
+              )).toList(),
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() {
+                    _selectedSeason = v;
+                    _selectedEpisode = 1;
+                  });
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _CustomDropdown<int>(
+              value: _selectedEpisode,
+              items: List.generate(
+                currentSeason.episodeCount,
+                (i) => DropdownMenuItem(
+                  value: i + 1,
+                  child: Text('Episódio ${i + 1}', style: const TextStyle(fontSize: 14)),
+                )
+              ),
+              onChanged: (v) {
+                if (v != null) setState(() => _selectedEpisode = v);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -113,6 +173,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  _buildSeasonSelector(details),
                   Row(
                     children: [
                       Expanded(
@@ -269,6 +330,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   ),
                 ],
                 const SizedBox(height: 16),
+                _buildSeasonSelector(details),
                 Row(
                   children: [
                     Expanded(
@@ -469,4 +531,34 @@ class _DetailsData {
   final MediaItem details;
   final List<CastMember> cast;
   final List<MediaItem> similar;
+}
+
+class _CustomDropdown<T> extends StatelessWidget {
+  const _CustomDropdown({required this.value, required this.items, required this.onChanged});
+  final T value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          isExpanded: true,
+          dropdownColor: AppColors.surface,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          items: items,
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
 }

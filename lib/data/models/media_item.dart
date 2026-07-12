@@ -14,10 +14,10 @@ class MediaItem {
     required this.releaseDate,
     required this.genreIds,
     required this.mediaType,
-    this.tagline,
     this.runtime,
     this.imdbId,
     this.certification,
+    this.tvSeasons,
   });
 
   final int id;
@@ -34,6 +34,7 @@ class MediaItem {
   final int? runtime;
   final String? imdbId;
   final String? certification;
+  final List<TvSeason>? tvSeasons;
 
   String get posterUrl => TmdbConfig.poster(posterPath);
   String get backdropUrl => TmdbConfig.backdrop(backdropPath);
@@ -80,6 +81,19 @@ class MediaItem {
       }
     }
 
+    List<TvSeason>? tvSeasons;
+    if (isTv && json['seasons'] != null) {
+      final seasonsList = json['seasons'] as List<dynamic>;
+      tvSeasons = seasonsList.map((e) {
+        final seasonMap = e as Map<String, dynamic>;
+        return TvSeason(
+          seasonNumber: seasonMap['season_number'] as int? ?? 0,
+          episodeCount: seasonMap['episode_count'] as int? ?? 0,
+          name: seasonMap['name'] as String? ?? 'Temporada ${seasonMap['season_number']}',
+        );
+      }).where((s) => s.seasonNumber > 0 && s.episodeCount > 0).toList();
+    }
+
     return MediaItem(
       id: json['id'] as int,
       title: (isTv ? json['original_name'] : json['original_title']) as String? ??
@@ -105,6 +119,7 @@ class MediaItem {
               : null),
       imdbId: json['external_ids']?['imdb_id'] as String? ?? json['imdb_id'] as String?,
       certification: cert,
+      tvSeasons: tvSeasons,
     );
   }
 
@@ -150,4 +165,16 @@ class CastMember {
       profilePath: json['profile_path'] as String?,
     );
   }
+}
+
+class TvSeason {
+  const TvSeason({
+    required this.seasonNumber,
+    required this.episodeCount,
+    required this.name,
+  });
+
+  final int seasonNumber;
+  final int episodeCount;
+  final String name;
 }

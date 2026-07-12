@@ -35,11 +35,11 @@ jobs:
         Copy-Item -Path "C:\Windows\System32\vcruntime140.dll" -Destination "build\windows\x64\runner\Release\"
         Copy-Item -Path "C:\Windows\System32\vcruntime140_1.dll" -Destination "build\windows\x64\runner\Release\"
 
-    - name: Compress Build
-      run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath SabuFlix-Windows.zip
+    - name: Build MSIX Installer
+      run: dart run msix:create --store false
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: SabuFlix-Windows
-        path: SabuFlix-Windows.zip
+        name: Sabuflix-Installer
+        path: build\windows\x64\runner\Release\*.msix

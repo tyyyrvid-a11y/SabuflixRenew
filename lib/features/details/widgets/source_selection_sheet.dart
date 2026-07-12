@@ -12,10 +12,14 @@ class SourceSelectionSheet extends StatefulWidget {
     super.key,
     required this.item,
     required this.forDownload,
+    this.season = 1,
+    this.episode = 1,
   });
 
   final MediaItem item;
   final bool forDownload;
+  final int season;
+  final int episode;
 
   @override
   State<SourceSelectionSheet> createState() => _SourceSelectionSheetState();
@@ -27,7 +31,11 @@ class _SourceSelectionSheetState extends State<SourceSelectionSheet> {
   @override
   void initState() {
     super.initState();
-    _future = StreamResolver.resolve(widget.item);
+    _future = StreamResolver.resolve(
+      widget.item, 
+      season: widget.season, 
+      episode: widget.episode,
+    );
   }
 
   void _onStreamSelected(ResolvedStream stream) async {
