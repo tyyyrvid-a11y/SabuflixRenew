@@ -31,6 +31,7 @@ dev_dependencies:
 msix_config:
   display_name: Sabuflix
   publisher_display_name: Sabuflix
+  publisher: CN=Sabuflix
   identity_name: Sabuflix.App
   msix_version: 1.0.0.0
 
