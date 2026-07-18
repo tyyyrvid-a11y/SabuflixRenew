@@ -10,8 +10,13 @@ import '../../core/glass/glass_button.dart';
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/media_item.dart';
+import 'package:simple_pip_mode/simple_pip.dart';
+import 'package:simple_pip_mode/pip_widget.dart';
 import '../../data/services/stream_resolver.dart';
 import '../../data/services/watch_history_store.dart';
+import '../../data/services/cast_service.dart';
+import 'widgets/cast_device_selector.dart';
+import 'widgets/track_selector_sheet.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   const VideoPlayerScreen({super.key, this.item, this.localFile, this.localTitle, this.resolvedStream});
@@ -54,6 +59,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     super.initState();
     player = Player();
     videoController = VideoController(player);
+    SimplePip().setAutoPipMode(aspectRatio: [16, 9]);
     _init();
   }
 
@@ -104,8 +110,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted && !_isLoaded) setState(() => _isLoaded = true);
       });
+
+      CastService.instance.addListener(_onCastStateChanged);
     } catch (e) {
       if (mounted) setState(() => _error = 'Não foi possível carregar o vídeo.\n$e');
+    }
+  }
+
+  void _onCastStateChanged() {
+    if (mounted) {
+      setState(() {});
+      if (CastService.instance.isCasting && _isPlaying) {
+        player.pause(); // Pausa local quando estiver no cast
+      }
     }
   }
 
@@ -141,6 +158,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   void _togglePlay() {
     Haptics.light();
+    if (CastService.instance.isCasting) {
+      CastService.instance.togglePlay();
+      _scheduleHide();
+      return;
+    }
     if (_isPlaying) {
       player.pause();
     } else {
@@ -151,8 +173,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   
   void _skip(int seconds) {
     Haptics.light();
-    final newPosition = _position + Duration(seconds: seconds);
-    player.seek(newPosition);
+    if (CastService.instance.isCasting) {
+      final newPosition = CastService.instance.position + Duration(seconds: seconds);
+      CastService.instance.seek(newPosition);
+    } else {
+      final newPosition = _position + Duration(seconds: seconds);
+      player.seek(newPosition);
+    }
     _scheduleHide();
   }
 
@@ -182,6 +209,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     _errorSub?.cancel();
     _bufferingSub?.cancel();
     player.dispose();
+    CastService.instance.removeListener(_onCastStateChanged);
+    if (CastService.instance.isCasting) {
+      CastService.instance.stop();
+    }
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -199,17 +230,55 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: GestureDetector(
-        onTap: _toggleControls,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Video(
-              controller: videoController,
-              controls: NoVideoControls,
-            ),
+    final videoLayer = Video(
+      controller: videoController,
+      controls: NoVideoControls,
+    );
+
+    return PipWidget(
+      pipBuilder: (context) => Scaffold(
+        backgroundColor: Colors.black,
+        body: videoLayer,
+      ),
+      builder: (context) => Scaffold(
+        backgroundColor: Colors.black,
+        body: GestureDetector(
+          onTap: _toggleControls,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (CastService.instance.isCasting)
+              Container(
+                color: Colors.black,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(CupertinoIcons.tv, color: Colors.white, size: 64),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Transmitindo para\n${CastService.instance.currentDevice?.name ?? 'Smart TV'}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 32),
+                      GestureDetector(
+                        onTap: () => CastService.instance.stop(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Text('Parar Transmissão', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              videoLayer,
             
             if (_error != null)
               Center(
@@ -254,9 +323,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 ignoring: !_controlsVisible || !_isLoaded,
                 child: _Controls(
                   title: widget.localTitle ?? widget.item?.title ?? 'Vídeo Local',
-                  isPlaying: _isPlaying,
-                  position: _position,
-                  duration: _duration,
+                  isPlaying: CastService.instance.isCasting ? CastService.instance.isPlaying : _isPlaying,
+                  position: CastService.instance.isCasting ? CastService.instance.position : _position,
+                  duration: CastService.instance.isCasting ? CastService.instance.duration : _duration,
                   buffer: _buffer,
                   fullscreen: _fullscreen,
                   onBack: () => Navigator.of(context).pop(),
@@ -266,8 +335,36 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   onFullscreen: _toggleFullscreen,
                   formatDuration: _format,
                   onSeek: (pos) {
-                    player.seek(pos);
+                    if (CastService.instance.isCasting) {
+                      CastService.instance.seek(pos);
+                    } else {
+                      player.seek(pos);
+                    }
                     _scheduleHide();
+                  },
+                  onCast: () {
+                    CastDeviceSelector.show(context, onDeviceSelected: (device) {
+                      String mediaUrl = '';
+                      if (widget.resolvedStream != null) {
+                        mediaUrl = widget.resolvedStream!.url;
+                      } else if (widget.item != null) {
+                        // Idealmente deveria resolver novamente se não estiver em cache, mas para simplificar:
+                        mediaUrl = player.state.playlist.medias.first.uri;
+                      }
+                      
+                      if (mediaUrl.isNotEmpty) {
+                        CastService.instance.connectAndPlay(
+                          device,
+                          mediaUrl,
+                          widget.localTitle ?? widget.item?.title ?? 'Vídeo Local',
+                        );
+                      }
+                    });
+                  },
+                  onPip: () => SimplePip().enterPipMode(aspectRatio: [16, 9]),
+                  onSettings: () {
+                    _hideTimer?.cancel();
+                    TrackSelectorSheet.show(context, player);
                   },
                 ),
               ),
@@ -294,6 +391,9 @@ class _Controls extends StatelessWidget {
     required this.onFullscreen,
     required this.formatDuration,
     required this.onSeek,
+    required this.onCast,
+    required this.onPip,
+    required this.onSettings,
   });
 
   final String title;
@@ -309,6 +409,9 @@ class _Controls extends StatelessWidget {
   final VoidCallback onFullscreen;
   final String Function(Duration) formatDuration;
   final Function(Duration) onSeek;
+  final VoidCallback onCast;
+  final VoidCallback onPip;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -357,6 +460,46 @@ class _Controls extends StatelessWidget {
                         fontWeight: FontWeight.w600, 
                         color: Colors.white,
                         letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: onSettings,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(CupertinoIcons.captions_bubble, color: Colors.white, size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: onPip,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(CupertinoIcons.rectangle_on_rectangle_angled, color: Colors.white, size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: onCast,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: CastService.instance.isCasting ? AppColors.accent : Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        CastService.instance.isCasting ? CupertinoIcons.tv_fill : CupertinoIcons.tv, 
+                        color: Colors.white, 
+                        size: 20
                       ),
                     ),
                   ),

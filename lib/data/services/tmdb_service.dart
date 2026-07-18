@@ -71,6 +71,12 @@ class TmdbService {
     return _parseList(data, forceType: type);
   }
 
+  Future<List<MediaItem>> discoverByGenreString(String genreIds, {MediaType type = MediaType.movie}) async {
+    final path = type == MediaType.movie ? '/discover/movie' : '/discover/tv';
+    final data = await _get(path, {'with_genres': genreIds, 'sort_by': 'popularity.desc'});
+    return _parseList(data, forceType: type);
+  }
+
   Future<List<MediaItem>> search(String query) async {
     if (query.trim().isEmpty) return [];
     final data = await _get('/search/multi', {'query': query, 'include_adult': 'false'});

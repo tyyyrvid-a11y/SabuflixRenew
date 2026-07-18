@@ -6,6 +6,7 @@ import '../../data/mock/mock_data.dart';
 import '../../data/models/media_item.dart';
 import '../../data/services/tmdb_service.dart';
 import '../../data/services/watch_history_store.dart';
+import '../../data/services/recommendation_engine.dart';
 import '../details/details_screen.dart';
 import 'widgets/continue_watching_row.dart';
 import 'widgets/hero_banner.dart';
@@ -36,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<_HomeData> _load() async {
     await WatchHistoryStore.instance.ensureLoaded();
     
+    final recEngine = RecommendationEngine(_service);
+
     final results = await Future.wait([
       _service.trending(),
       _service.popularMovies(),
@@ -44,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _service.popularTv(),
       _service.discoverByGenre(28), // Action
       _service.discoverByGenre(35), // Comedy
+      recEngine.getRecommendations(),
     ]);
 
     final trending = results[0];
@@ -53,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final popularTv = results[4];
     final action = results[5];
     final comedy = results[6];
+    final recommendations = results[7];
 
     final hero = trending.firstWhere(
       (m) => m.backdropPath != null,
@@ -68,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
       popularTv: popularTv,
       action: action,
       comedy: comedy,
+      recommendations: recommendations,
     );
   }
 
@@ -127,6 +133,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             },
                           ),
+                          if (data.recommendations.isNotEmpty) ...[
+                            MediaRow(title: 'Recomendados para Você', items: data.recommendations, onItemTap: _openDetails),
+                            const SizedBox(height: 28),
+                          ],
                           MediaRow(title: 'Em alta', items: data.trending, onItemTap: _openDetails),
                           const SizedBox(height: 28),
                           MediaRow(title: 'Populares', items: data.popularMovies, onItemTap: _openDetails),
@@ -225,6 +235,7 @@ class _HomeData {
     required this.popularTv,
     required this.action,
     required this.comedy,
+    required this.recommendations,
   });
 
   final MediaItem hero;
@@ -235,4 +246,5 @@ class _HomeData {
   final List<MediaItem> popularTv;
   final List<MediaItem> action;
   final List<MediaItem> comedy;
+  final List<MediaItem> recommendations;
 }

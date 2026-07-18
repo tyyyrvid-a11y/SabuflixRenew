@@ -21,7 +21,9 @@ dependencies:
   path_provider: ^2.1.4
   url_launcher: ^6.3.0
   file_picker: ^8.1.2
-
+  upnp_client: any
+  cast: any
+  simple_pip_mode: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
