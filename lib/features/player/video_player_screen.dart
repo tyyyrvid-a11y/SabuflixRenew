@@ -211,10 +211,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       _previousPosition = await windowManager.getPosition();
       await windowManager.setAlwaysOnTop(true);
       await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+      await windowManager.setMinimumSize(const Size(240, 135));
+      await windowManager.setResizable(true);
       await windowManager.setSize(const Size(400, 225));
     } else {
       await windowManager.setAlwaysOnTop(false);
       await windowManager.setTitleBarStyle(TitleBarStyle.normal);
+      await windowManager.setMinimumSize(const Size(800, 600));
       if (_previousSize != null) {
         await windowManager.setSize(_previousSize!);
       }
@@ -272,8 +275,28 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       builder: (context) => Scaffold(
         backgroundColor: Colors.black,
         body: _isDesktopPip 
-        ? GestureDetector(
-            onDoubleTap: _toggleDesktopPip,
+        ? DragToResizeArea(
+            child: DragToMoveArea(
+              child: GestureDetector(
+                onDoubleTap: _toggleDesktopPip,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    videoLayer,
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton(
+                        icon: const Icon(CupertinoIcons.fullscreen, color: Colors.white),
+                        onPressed: _toggleDesktopPip,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        : GestureDetector(
             child: Stack(
               fit: StackFit.expand,
               children: [
