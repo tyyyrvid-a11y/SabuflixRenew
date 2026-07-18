@@ -59,7 +59,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     super.initState();
     player = Player();
     videoController = VideoController(player);
-    SimplePip().setAutoPipMode(aspectRatio: [16, 9]);
+    SimplePip().setAutoPipMode(aspectRatio: const (16, 9));
     _init();
   }
 
@@ -361,7 +361,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       }
                     });
                   },
-                  onPip: () => SimplePip().enterPipMode(aspectRatio: [16, 9]),
+                  onPip: () => SimplePip().enterPipMode(aspectRatio: const (16, 9)),
                   onSettings: () {
                     _hideTimer?.cancel();
                     TrackSelectorSheet.show(context, player);
@@ -372,8 +372,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _Controls extends StatelessWidget {

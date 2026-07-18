@@ -40,3 +40,6 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+
+dependency_overrides:
+  bonsoir: 3.0.0
