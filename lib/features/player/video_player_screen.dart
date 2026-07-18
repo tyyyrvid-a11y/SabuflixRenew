@@ -59,7 +59,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     super.initState();
     player = Player();
     videoController = VideoController(player);
-    SimplePip().setAutoPipMode(aspectRatio: const (16, 9));
+    const MethodChannel('sabuflix.pip').invokeMethod('setIsPipEnabled', true);
     _init();
   }
 
@@ -200,6 +200,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   void dispose() {
+    const MethodChannel('sabuflix.pip').invokeMethod('setIsPipEnabled', false);
     _saveProgress(force: true);
     _hideTimer?.cancel();
     _playingSub?.cancel();
@@ -361,7 +362,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       }
                     });
                   },
-                  onPip: () => SimplePip().enterPipMode(aspectRatio: const (16, 9)),
+                  onPip: () => const MethodChannel('sabuflix.pip').invokeMethod('enterPip'),
                   onSettings: () {
                     _hideTimer?.cancel();
                     TrackSelectorSheet.show(context, player);
