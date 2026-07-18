@@ -134,8 +134,6 @@ class _CastDeviceSelectorState extends State<CastDeviceSelector> {
                       itemCount: devices.length,
                       itemBuilder: (context, index) {
                         final device = devices[index];
-                        final isChromecast = device.type == CastDeviceType.chromecast;
-                        
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                           leading: Container(
@@ -144,8 +142,8 @@ class _CastDeviceSelectorState extends State<CastDeviceSelector> {
                               color: Colors.white.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Icon(
-                              isChromecast ? CupertinoIcons.home : CupertinoIcons.tv, 
+                            child: const Icon(
+                              CupertinoIcons.tv, 
                               color: Colors.white, 
                               size: 24
                             ),

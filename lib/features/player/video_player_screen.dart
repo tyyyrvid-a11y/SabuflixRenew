@@ -296,22 +296,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               ),
             ),
           )
-        : GestureDetector(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                videoLayer,
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: IconButton(
-                    icon: const Icon(CupertinoIcons.fullscreen, color: Colors.white),
-                    onPressed: _toggleDesktopPip,
-                  ),
-                ),
-              ],
-            ),
-          )
+
         : GestureDetector(
           onTap: _toggleControls,
           child: Stack(
