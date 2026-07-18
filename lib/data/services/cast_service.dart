@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:cast/cast.dart' as google_cast;
+import 'package:flutter/foundation.dart';
 import '../models/cast_device.dart';
 
 class CastService extends ChangeNotifier {
@@ -27,11 +27,6 @@ class CastService extends ChangeNotifier {
   Duration _duration = Duration.zero;
   Duration get duration => _duration;
 
-  // Google Cast Session
-  google_cast.CastSession? _castSession;
-  StreamSubscription? _castStateSub;
-  StreamSubscription? _castMediaSub;
-
   // DLNA state
   Timer? _dlnaPositionTimer;
   String? _dlnaControlUrl;
@@ -44,34 +39,11 @@ class CastService extends ChangeNotifier {
     _devices.clear();
     notifyListeners();
 
-    _discoverChromecasts();
     _discoverDLNA();
   }
 
   void stopDiscovery() {
     _isDiscovering = false;
-  }
-
-  Future<void> _discoverChromecasts() async {
-    try {
-      final googleCastDevices = await google_cast.CastDiscoveryService().search();
-      for (var gcDevice in googleCastDevices) {
-        if (!_isDiscovering) return;
-        final device = CastDevice(
-          id: gcDevice.name,
-          name: gcDevice.name,
-          host: gcDevice.host,
-          type: CastDeviceType.chromecast,
-          originalDevice: gcDevice,
-        );
-        if (!_devices.any((d) => d.id == device.id)) {
-          _devices.add(device);
-          notifyListeners();
-        }
-      }
-    } catch (e) {
-      debugPrint('Erro buscando Chromecast: $e');
-    }
   }
 
   Future<void> _discoverDLNA() async {
@@ -165,55 +137,10 @@ class CastService extends ChangeNotifier {
     _isCasting = true;
     notifyListeners();
 
-    if (device.type == CastDeviceType.chromecast) {
-      await _playChromecast(device.originalDevice as google_cast.CastDevice, mediaUrl, title);
-    } else if (device.type == CastDeviceType.dlna) {
+    if (device.type == CastDeviceType.dlna) {
       _dlnaControlUrl = device.originalDevice as String;
       await _playDLNA(_dlnaControlUrl!, mediaUrl, title);
     }
-  }
-
-  Future<void> _playChromecast(google_cast.CastDevice gcDevice, String mediaUrl, String title) async {
-    _castSession = await google_cast.CastSessionManager().startSession(gcDevice);
-    
-    _castStateSub = _castSession?.stateStream.listen((state) {
-      if (state == google_cast.CastSessionState.connected) {
-        _castSession?.sendMessage(google_cast.CastSession.kNamespaceMedia, {
-          'type': 'LOAD',
-          'autoPlay': true,
-          'media': {
-            'contentId': mediaUrl,
-            'streamType': 'BUFFERED',
-            'contentType': 'video/mp4',
-            'metadata': {
-              'metadataType': 0,
-              'title': title,
-            }
-          },
-        });
-      }
-    });
-
-    _castMediaSub = _castSession?.messageStream.listen((message) {
-      if (message['namespace'] == google_cast.CastSession.kNamespaceMedia) {
-        final payload = message['payload'];
-        if (payload != null && payload['status'] != null) {
-          final statusList = payload['status'] as List;
-          if (statusList.isNotEmpty) {
-            final status = statusList[0];
-            final state = status['playerState'];
-            _isPlaying = state == 'PLAYING' || state == 'BUFFERING';
-            if (status['currentTime'] != null) {
-              _position = Duration(seconds: (status['currentTime'] as num).toInt());
-            }
-            if (status['media'] != null && status['media']['duration'] != null) {
-              _duration = Duration(seconds: (status['media']['duration'] as num).toInt());
-            }
-            notifyListeners();
-          }
-        }
-      }
-    });
   }
 
   Future<void> _playDLNA(String controlUrl, String mediaUrl, String title) async {
@@ -276,14 +203,7 @@ class CastService extends ChangeNotifier {
     if (!_isCasting) return;
     
     _isPlaying = !_isPlaying;
-    if (_currentDevice?.type == CastDeviceType.chromecast) {
-      if (_castSession != null) {
-        // Envia toggle via Chromecast
-        _castSession?.sendMessage(google_cast.CastSession.kNamespaceMedia, {
-          'type': _isPlaying ? 'PLAY' : 'PAUSE',
-        });
-      }
-    } else if (_currentDevice?.type == CastDeviceType.dlna) {
+    if (_currentDevice?.type == CastDeviceType.dlna) {
       _sendDLNACommand(_isPlaying ? 'Play' : 'Pause');
     }
     notifyListeners();
@@ -295,12 +215,7 @@ class CastService extends ChangeNotifier {
     _position = Duration.zero;
     _duration = Duration.zero;
     
-    if (_currentDevice?.type == CastDeviceType.chromecast) {
-      _castSession?.close();
-      _castSession = null;
-      _castStateSub?.cancel();
-      _castMediaSub?.cancel();
-    } else if (_currentDevice?.type == CastDeviceType.dlna) {
+    if (_currentDevice?.type == CastDeviceType.dlna) {
       _sendDLNACommand('Stop');
       _dlnaPositionTimer?.cancel();
     }
@@ -315,12 +230,7 @@ class CastService extends ChangeNotifier {
     _position = newPosition;
     notifyListeners();
 
-    if (_currentDevice?.type == CastDeviceType.chromecast) {
-      _castSession?.sendMessage(google_cast.CastSession.kNamespaceMedia, {
-        'type': 'SEEK',
-        'currentTime': newPosition.inSeconds,
-      });
-    } else if (_currentDevice?.type == CastDeviceType.dlna) {
+    if (_currentDevice?.type == CastDeviceType.dlna) {
       // Seek no DLNA usa o comando Seek com formato HH:MM:SS
       final uri = Uri.parse(_dlnaControlUrl!);
       final h = newPosition.inHours.toString().padLeft(2, '0');

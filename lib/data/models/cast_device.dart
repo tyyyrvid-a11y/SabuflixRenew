@@ -1,6 +1,5 @@
 enum CastDeviceType {
   dlna,
-  chromecast,
   roku,
 }
 
@@ -33,8 +32,6 @@ class CastDevice {
     switch (type) {
       case CastDeviceType.dlna:
         return 'Smart TV (DLNA)';
-      case CastDeviceType.chromecast:
-        return 'Chromecast';
       case CastDeviceType.roku:
         return 'Roku TV';
     }
