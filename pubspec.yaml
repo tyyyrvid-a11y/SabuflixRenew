@@ -24,6 +24,7 @@ dependencies:
   upnp_client: any
   cast: any
   simple_pip_mode: any
+  window_manager: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

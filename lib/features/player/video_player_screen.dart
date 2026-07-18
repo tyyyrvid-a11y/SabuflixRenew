@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:window_manager/window_manager.dart';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +44,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   bool _controlsVisible = true;
   bool _fullscreen = false;
+  bool _isDesktopPip = false;
+  Size? _previousSize;
+  Offset? _previousPosition;
   String? _error;
   Timer? _hideTimer;
   int _lastSavedSeconds = -1;
@@ -198,6 +202,30 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  Future<void> _toggleDesktopPip() async {
+    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) return;
+    
+    _isDesktopPip = !_isDesktopPip;
+    if (_isDesktopPip) {
+      _previousSize = await windowManager.getSize();
+      _previousPosition = await windowManager.getPosition();
+      await windowManager.setAlwaysOnTop(true);
+      await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+      await windowManager.setSize(const Size(400, 225));
+    } else {
+      await windowManager.setAlwaysOnTop(false);
+      await windowManager.setTitleBarStyle(TitleBarStyle.normal);
+      if (_previousSize != null) {
+        await windowManager.setSize(_previousSize!);
+      }
+      if (_previousPosition != null) {
+        await windowManager.setPosition(_previousPosition!);
+      }
+    }
+    if (mounted) setState(() {});
+  }
+
+
   @override
   void dispose() {
     const MethodChannel('sabuflix.pip').invokeMethod('setIsPipEnabled', false);
@@ -243,7 +271,25 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       ),
       builder: (context) => Scaffold(
         backgroundColor: Colors.black,
-        body: GestureDetector(
+        body: _isDesktopPip 
+        ? GestureDetector(
+            onDoubleTap: _toggleDesktopPip,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                videoLayer,
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: const Icon(CupertinoIcons.fullscreen, color: Colors.white),
+                    onPressed: _toggleDesktopPip,
+                  ),
+                ),
+              ],
+            ),
+          )
+        : GestureDetector(
           onTap: _toggleControls,
           child: Stack(
             fit: StackFit.expand,
@@ -362,7 +408,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       }
                     });
                   },
-                  onPip: () => const MethodChannel('sabuflix.pip').invokeMethod('enterPip'),
+                  onPip: () {
+                    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+                      _toggleDesktopPip();
+                    } else {
+                      const MethodChannel('sabuflix.pip').invokeMethod('enterPip');
+                    }
+                  },
                   onSettings: () {
                     _hideTimer?.cancel();
                     TrackSelectorSheet.show(context, player);
