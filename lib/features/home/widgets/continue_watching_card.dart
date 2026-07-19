@@ -55,6 +55,24 @@ class ContinueWatchingCard extends StatelessWidget {
                       ),
                     ),
                     Positioned(
+                      left: 8,
+                      top: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          Haptics.tap();
+                          WatchHistoryStore.instance.removeEntry(entry.item);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close_rounded, size: 18, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    Positioned(
                       left: 10,
                       right: 10,
                       bottom: 10,

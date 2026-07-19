@@ -98,4 +98,15 @@ class WatchHistoryStore extends ChangeNotifier {
     final entry = _entries[_key(item)];
     return entry?.positionInSeconds;
   }
+
+  Future<void> removeEntry(MediaItem item) async {
+    final removed = _entries.remove(_key(item));
+    if (removed == null) return;
+
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _entries.values.map((e) => json.encode(e.toJson())).toList();
+    await prefs.setStringList('watch_history_entries', jsonList);
+  }
 }
